@@ -1,10 +1,8 @@
 import { KubeConfig, CoreV1Api } from "@kubernetes/client-node";
 
-// Create and configure the KubeConfig
 const kc = new KubeConfig();
 kc.loadFromDefault();
 
-// Create the Kubernetes API client
 export const k8sApi = kc.makeApiClient(CoreV1Api);
 
 export async function getK8sNamespaces() {
@@ -13,7 +11,7 @@ export async function getK8sNamespaces() {
     return { namespaces: res.body.items, error: null };
   } catch (err) {
     console.error("Error fetching namespaces:", err);
-    return { namespaces: [], error: err.message };
+    return { namespaces: [], error: err };
   }
 }
 
@@ -23,6 +21,6 @@ export async function getK8sPods(namespace: string = "default") {
     return { pods: res.body.items, error: null };
   } catch (err) {
     console.error(`Error fetching pods in namespace ${namespace}:`, err);
-    return { pods: [], error: err.message };
+    return { pods: [], error: err };
   }
 }

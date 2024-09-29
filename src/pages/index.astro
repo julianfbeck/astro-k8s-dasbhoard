@@ -1,8 +1,13 @@
 ---
 import DefaultLayout from '@/layout/DefaultLayout.astro'
 import '@/styles/globals.css'
+import { API_SECRET } from 'astro:env/server'
+
+const SECRET = API_SECRET
+
 ---
 
 <DefaultLayout title='Namespaces'>
 	<h1>Astro</h1>
+	{SECRET}
 </DefaultLayout>
