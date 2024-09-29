@@ -18,8 +18,11 @@ export default defineConfig({
   }),
   env: {
     schema: {
-      WEBSITE_NAME: envField.string({ context: "server", access: "secret" }),
-      
+      WEBSITE_NAME: envField.string({
+        context: "server",
+        access: "secret",
+        default: "My Website",
+      }),
     },
   },
 });
