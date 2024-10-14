@@ -23,6 +23,16 @@ export default defineConfig({
         access: "secret",
         default: "My Website",
       }),
+      LABEL_SELECTOR: envField.string({
+        context: "server",
+        access: "secret",
+        default: "unicorn.mips-ql.markant.services/ref",
+      }),
+      GRAFANA_BASE_URL: envField.string({
+        context: "server",
+        access: "secret",
+        default: "https://grafana.com",
+      }),
     },
   },
 });

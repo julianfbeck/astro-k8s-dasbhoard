@@ -1,59 +1,58 @@
 ---
+import { CommandDialogDemo } from '@/components/custom/CommandBox';
 import { ModeToggle } from '@/components/custom/ModeToggle';
-
 // DashboardLayout.astro
 interface Props {
   title: string;
 }
-
 const { title } = Astro.props;
 ---
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
+    <style>
+        :root {
+            --sidebar-bg: 221.2 83.2% 53.3%;
+            --sidebar-fg: 210 40% 98%;
+        }
+        .dark {
+            --sidebar-bg: 217.2 32.6% 17.5%;
+            --sidebar-fg: 210 40% 98%;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+<body class="bg-background text-foreground">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside class="w-64 bg-indigo-700 dark:bg-indigo-900 text-white p-6">
+        <aside class="w-64 bg-gradient-to-b from-[hsl(var(--sidebar-bg))] to-[hsl(var(--sidebar-bg)_/_0.8)] text-[hsl(var(--sidebar-fg))] p-6">
             <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
             <nav>
                 <ul class="space-y-2">
-                    <li><a href="#" class="block py-2 px-4 rounded hover:bg-indigo-600 dark:hover:bg-indigo-800 transition-colors duration-200">Home</a></li>
-                    <li><a href="#" class="block py-2 px-4 rounded hover:bg-indigo-600 dark:hover:bg-indigo-800 transition-colors duration-200">Analytics</a></li>
-                    <li><a href="#" class="block py-2 px-4 rounded hover:bg-indigo-600 dark:hover:bg-indigo-800 transition-colors duration-200">Reports</a></li>
-                    <li><a href="#" class="block py-2 px-4 rounded hover:bg-indigo-600 dark:hover:bg-indigo-800 transition-colors duration-200">Settings</a></li>
+                    <li><a href="/" class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200">Namespaces</a></li>
+                    <li><a href="/favs" class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200">Favourites</a></li>
                 </ul>
             </nav>
         </aside>
-
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Header -->
-            <header class="bg-white dark:bg-gray-800 shadow-md p-4 transition-colors duration-200">
+            <header class="bg-gradient-to-r from-secondary/80 via-secondary to-secondary/80 text-secondary-foreground shadow-sm p-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{title}</h2>
-                    <!-- <button 
-                        onclick="toggleDarkMode()" 
-                        class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200"
-                    >
-                        Toggle Dark Mode
-                    </button> -->
-					<ModeToggle client:load/>
-                </div>
+                    <h2 class="text-xl font-semibold">{title}</h2>
+                    <div class="flex items-center space-x-4">
+                        <CommandDialogDemo client:load />
+                        <ModeToggle client:load />
+                    </div>
             </header>
-
             <!-- Main Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-6 transition-colors duration-200">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
                 <slot />
             </main>
         </div>
     </div>
 </body>
 </html>
-
 <script is:inline>
 	const getThemePreference = () => {
 		if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
@@ -71,5 +70,4 @@ const { title } = Astro.props;
 		});
 		observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 	}
-	
 </script>
