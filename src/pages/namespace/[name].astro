@@ -1,77 +1,23 @@
 ---
+import Namespace from "@/components/astro/Namespace.astro";
+import DefaultLayout from "@/layout/DefaultLayout.astro";
+import "@/styles/globals.css";
+import { WEBSITE_NAME } from "astro:env/server";
 import { getK8sNamespaceInfo } from "@/lib/k8s/client";
-
-import '@/styles/globals.css'
 
 const { name } = Astro.params;
 if (!name) {
-	Astro.redirect('/');
+  Astro.redirect("/");
 }
 const namespaceInfo = await getK8sNamespaceInfo(name!);
-
 if (!namespaceInfo) {
   return new Response(null, {
     status: 404,
-    statusText: 'Not found'
+    statusText: "Not found",
   });
 }
-
-const { namespace, ingressUrls, services, resourceUsage } = namespaceInfo;
 ---
 
-<!-- <Layout title={`Namespace: ${name}`}> -->
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6">Namespace: {name}</h1>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-card text-card-foreground shadow rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Namespace Details</h2>
-        <p><strong>Created:</strong> {new Date(namespace.metadata.creationTimestamp).toLocaleString()}</p>
-        <p><strong>Status:</strong> {namespace.status.phase}</p>
-      </div>
-
-      <div class="bg-card text-card-foreground shadow rounded-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Resource Usage</h2>
-        <p><strong>CPU:</strong> {resourceUsage.cpu}</p>
-        <p><strong>Memory:</strong> {resourceUsage.memory}</p>
-      </div>
-    </div>
-
-    <div class="mt-8 bg-card text-card-foreground shadow rounded-lg p-6">
-      <h2 class="text-xl font-semibold mb-4">Ingress URLs</h2>
-      {ingressUrls.length > 0 ? (
-        <ul class="list-disc pl-5">
-          {ingressUrls.map((url) => (
-            <li>
-              <a href={url.toString()} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
-                {url.toString()}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No ingress URLs found for this namespace.</p>
-      )}
-    </div>
-
-    <div class="mt-8 bg-card text-card-foreground shadow rounded-lg p-6">
-      <h2 class="text-xl font-semibold mb-4">Services</h2>
-      {services.length > 0 ? (
-        <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {services.map((service) => (
-            <li class="bg-muted p-4 rounded">
-              <h3 class="font-semibold">{service.metadata.name}</h3>
-              <p><strong>Type:</strong> {service.spec.type}</p>
-              <p><strong>Cluster IP:</strong> {service.spec.clusterIP}</p>
-              {service.spec.ports && (
-                <p><strong>Ports:</strong> {service.spec.ports.map(port => `${port.port}/${port.protocol}`).join(', ')}</p>
-              )}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No services found in this namespace.</p>
-      )}
-    </div>
-  </div>
-<!-- </Layout> -->
+<DefaultLayout title={WEBSITE_NAME}>
+  <Namespace namespaceInfo={namespaceInfo} , name={name!} />
+</DefaultLayout>

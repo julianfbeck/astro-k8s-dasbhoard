@@ -26,7 +26,6 @@ export default defineConfig({
       LABEL_SELECTOR: envField.string({
         context: "server",
         access: "secret",
-        default: "unicorn.mips-ql.markant.services/ref",
       }),
       GRAFANA_BASE_URL: envField.string({
         context: "server",

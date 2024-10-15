@@ -1,14 +1,12 @@
 ---
-import Namespaces from '@/components/astro/Namespaces.astro'
-import { CommandDialogDemo } from '@/components/custom/CommandBox'
-import DefaultLayout from '@/layout/DefaultLayout.astro'
-import {  getK8sNamespacesWithIngress } from '@/lib/k8s/client'
-import '@/styles/globals.css'
-import { WEBSITE_NAME } from 'astro:env/server'
-
-const namespaceIngressInfos = await getK8sNamespacesWithIngress();
+import Namespaces from "@/components/astro/Namespaces.astro";
+import { CommandDialogDemo } from "@/components/custom/CommandBox";
+import DefaultLayout from "@/layout/DefaultLayout.astro";
+import { getK8sNamespacesWithIngress } from "@/lib/k8s/client";
+import "@/styles/globals.css";
+import { WEBSITE_NAME } from "astro:env/server";
 ---
 
 <DefaultLayout title={WEBSITE_NAME}>
-	<Namespaces />
+  <Namespaces />
 </DefaultLayout>

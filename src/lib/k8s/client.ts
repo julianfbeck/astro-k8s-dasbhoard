@@ -8,6 +8,7 @@ import {
   V1Service,
   V1Pod,
   AppsV1Api,
+  V1Deployment,
 } from "@kubernetes/client-node";
 import { LABEL_SELECTOR } from "astro:env/server";
 import NodeCache from "node-cache";
@@ -24,13 +25,14 @@ const cache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
 
 export type NamespaceIngressInfo = {
   namespace: V1Namespace;
-  ingressUrls: string[]; // Changed to string[] for caching
+  ingressUrls: string[];
 };
 
 export type NamespaceInfo = {
   namespace: V1Namespace;
   ingressUrls: URL[];
   services: V1Service[];
+  deployments: V1Deployment[];
   resourceUsage: ResourceUsage;
 };
 
@@ -39,7 +41,7 @@ export type ResourceUsage = {
   memory: string;
 };
 
-const BATCH_SIZE = 10; // Number of namespaces to process in each batch
+const BATCH_SIZE = 10;
 
 export async function getK8sNamespacesWithIngress(): Promise<
   NamespaceIngressInfo[]
@@ -68,7 +70,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
         undefined,
         undefined,
         undefined,
-        30
+        30,
       );
       namespaces = namespaces.concat(namespaceResponse.body.items);
       continueToken = namespaceResponse.body.metadata?._continue;
@@ -85,9 +87,8 @@ export async function getK8sNamespacesWithIngress(): Promise<
             return { namespace, ingressUrls: [] };
           }
 
-          const ingresses = await networkingV1Api.listNamespacedIngress(
-            namespaceName
-          );
+          const ingresses =
+            await networkingV1Api.listNamespacedIngress(namespaceName);
           const ingressUrls = ingresses.body.items
             .flatMap(extractIngressUrls)
             .map((url) => url.toString());
@@ -96,7 +97,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
             namespace,
             ingressUrls,
           };
-        })
+        }),
       );
 
       namespaceIngressInfos.push(...batchResults);
@@ -153,7 +154,7 @@ function removeUnnecessaryFrontendUrl(url: string): boolean {
 }
 
 export async function getK8sNamespaceInfo(
-  namespaceName: string
+  namespaceName: string,
 ): Promise<NamespaceInfo | null> {
   const cacheKey = `namespace:${namespaceName}`;
   const cachedData = cache.get<NamespaceInfo>(cacheKey);
@@ -170,23 +171,27 @@ export async function getK8sNamespaceInfo(
       ingressesResponse,
       servicesResponse,
       podsResponse,
+      deploymentsResponse, // Added deployments response
     ] = await Promise.all([
       k8sApi.readNamespace(namespaceName),
       networkingV1Api.listNamespacedIngress(namespaceName),
       k8sApi.listNamespacedService(namespaceName),
       k8sApi.listNamespacedPod(namespaceName),
+      appsV1Api.listNamespacedDeployment(namespaceName), // Added deployments request
     ]);
 
     const namespace = namespaceResponse.body;
     const ingressUrls =
       ingressesResponse.body.items.flatMap(extractIngressUrls);
     const services = servicesResponse.body.items;
+    const deployments = deploymentsResponse.body.items; // Added deployments
     const resourceUsage = calculateResourceUsage(podsResponse.body.items);
 
     const result: NamespaceInfo = {
       namespace,
       ingressUrls,
       services,
+      deployments, // Added deployments
       resourceUsage,
     };
 

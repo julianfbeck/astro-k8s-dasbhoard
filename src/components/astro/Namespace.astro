@@ -1,0 +1,218 @@
+---
+import type { NamespaceInfo } from "@/lib/k8s/client";
+import { GRAFANA_BASE_URL } from "astro:env/server";
+interface Props {
+  namespaceInfo: NamespaceInfo;
+  name: string;
+  grafanaBaseUrl: string;
+}
+const { namespaceInfo, name } = Astro.props;
+const { namespace, ingressUrls, services, deployments, resourceUsage } =
+  namespaceInfo;
+
+const grafanaBaseUrl = GRAFANA_BASE_URL;
+
+// Function to generate Loki logs URL for services
+const getServiceLogsUrl = (serviceName: string) =>
+  `${grafanaBaseUrl}/explore?schemaVersion=1&panes=%7B%22GCQ%22%3A%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bservice%3D%5C%22${serviceName}%5C%22%7D%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22loki%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D%7D&orgId=1`;
+
+// Function to generate Loki logs URL for deployments
+const getDeploymentLogsUrl = (deploymentName: string) =>
+  `${grafanaBaseUrl}/explore?schemaVersion=1&panes=%7B%22GCQ%22%3A%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bapp%3D%5C%22${deploymentName}%5C%22%7D%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22loki%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D%7D&orgId=1`;
+
+// Function to generate Grafana dashboard URL
+const getGrafanaDashboardUrl = (serviceName: string) =>
+  `${grafanaBaseUrl}/d/k8s-resources-namespace/kubernetes-compute-resources-namespace-workloads?var-datasource=Prometheus&var-namespace=${name}&var-type=deployment&var-workload=${serviceName}`;
+
+// Function to get Pod dashboard URL
+const getPodDashboardUrl = (serviceName: string) =>
+  `${grafanaBaseUrl}/d/k8s-resources-pod/kubernetes-compute-resources-pod?var-datasource=Prometheus&var-namespace=${name}&var-pod=${serviceName}`;
+---
+
+<div
+  class="bg-background text-foreground dark:bg-background dark:text-foreground rounded-lg border shadow-sm"
+>
+  <div class="p-4 border-b border-border">
+    <h2 class="text-lg font-semibold">Namespace: {name}</h2>
+  </div>
+  <div class="p-4 space-y-4">
+    {/* Namespace Details */}
+    <div class="space-y-2">
+      <h3
+        class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"
+      >
+        Namespace Details
+      </h3>
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div>
+          <span class="font-medium">Created:</span>
+          {
+            namespace.metadata?.creationTimestamp
+              ? new Date(namespace.metadata.creationTimestamp).toLocaleString()
+              : "N/A"
+          }
+        </div>
+        <div>
+          <span class="font-medium">Status:</span>
+          {namespace.status.phase}
+        </div>
+      </div>
+    </div>
+
+    {/* Resource Usage Card */}
+    <div
+      class="bg-card text-card-foreground dark:bg-card dark:text-card-foreground p-4 rounded-lg shadow-sm"
+    >
+      <h3 class="text-sm font-medium mb-2">Resource Usage</h3>
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div><span class="font-medium">CPU:</span> {resourceUsage.cpu}</div>
+        <div>
+          <span class="font-medium">Memory:</span>
+          {resourceUsage.memory}
+        </div>
+      </div>
+    </div>
+
+    {/* Ingress URLs */}
+    <div class="space-y-2">
+      <h3
+        class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"
+      >
+        Ingress URLs
+      </h3>
+      {
+        ingressUrls.length > 0 ? (
+          <ul class="space-y-2">
+            {ingressUrls.map((url) => (
+              <li>
+                <a
+                  href={url.toString()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="block text-sm bg-primary/10 p-3 rounded-md hover:bg-primary/20 transition-colors duration-200"
+                >
+                  <span class="text-primary font-medium">{url.toString()}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-xs text-muted-foreground dark:text-muted-foreground">
+            No ingress URLs found for this namespace.
+          </p>
+        )
+      }
+    </div>
+
+    {/* Deployments */}
+    <div class="space-y-2">
+      <h3
+        class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"
+      >
+        Deployments
+      </h3>
+      {
+        deployments.length > 0 ? (
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {deployments.map((deployment) => (
+              <div class="bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground p-3 rounded">
+                <h4 class="font-medium text-sm mb-2 text-primary">
+                  {deployment.metadata.name}
+                </h4>
+                <p class="text-xs">
+                  <span class="font-medium">Replicas:</span>{" "}
+                  {deployment.spec.replicas}
+                </p>
+                <p class="text-xs">
+                  <span class="font-medium">Strategy:</span>{" "}
+                  {deployment.spec.strategy.type}
+                </p>
+                <div class="mt-2 flex space-x-2">
+                  <a
+                    href={getDeploymentLogsUrl(deployment.metadata.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs bg-primary text-primary-foreground px-2 py-1 rounded hover:bg-primary/90 transition-colors duration-200"
+                  >
+                    Logs
+                  </a>
+                  <a
+                    href={getGrafanaDashboardUrl(deployment.metadata.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs bg-primary text-primary-foreground px-2 py-1 rounded hover:bg-primary/90 transition-colors duration-200"
+                  >
+                    Dashboard
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="text-xs text-muted-foreground dark:text-muted-foreground">
+            No deployments found in this namespace.
+          </p>
+        )
+      }
+    </div>
+
+    {/* Services */}
+    <div class="space-y-2">
+      <h3
+        class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"
+      >
+        Services
+      </h3>
+      {
+        services.length > 0 ? (
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {services.map((service) => (
+              <div class="bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground p-3 rounded">
+                <h4 class="font-medium text-sm mb-2 text-primary">
+                  {service.metadata.name}
+                </h4>
+                <p class="text-xs">
+                  <span class="font-medium">Type:</span> {service.spec.type}
+                </p>
+                <p class="text-xs">
+                  <span class="font-medium">Cluster IP:</span>{" "}
+                  {service.spec.clusterIP}
+                </p>
+                {service.spec.ports && (
+                  <p class="text-xs">
+                    <span class="font-medium">Ports:</span>{" "}
+                    {service.spec.ports
+                      .map((port) => `${port.port}/${port.protocol}`)
+                      .join(", ")}
+                  </p>
+                )}
+                <div class="mt-2 flex space-x-2">
+                  <a
+                    href={getServiceLogsUrl(service.metadata.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs bg-primary text-primary-foreground px-2 py-1 rounded hover:bg-primary/90 transition-colors duration-200"
+                  >
+                    Logs
+                  </a>
+                  <a
+                    href={getPodDashboardUrl(service.metadata.name)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs bg-primary text-primary-foreground px-2 py-1 rounded hover:bg-primary/90 transition-colors duration-200"
+                  >
+                    Dashboard
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p class="text-xs text-muted-foreground dark:text-muted-foreground">
+            No services found in this namespace.
+          </p>
+        )
+      }
+    </div>
+  </div>
+</div>
