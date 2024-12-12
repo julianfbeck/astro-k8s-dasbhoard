@@ -1,13 +1,15 @@
 ---
-import { CommandBox } from "@/components/custom/CommandBox";
+import { DetailCommandBox } from "@/components/custom/DetailCommandBox";
+import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
-import type { NamespaceIngressInfo } from "@/lib/k8s/client";
+import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
 // DashboardLayout.astro
 interface Props {
   title: string;
   namespaceIngressInfos: NamespaceIngressInfo[] | undefined;
+  namespaceInfo: NamespaceInfo | undefined;
 }
-const { title, namespaceIngressInfos } = Astro.props;
+const { title, namespaceIngressInfos, namespaceInfo } = Astro.props;
 ---
 
 <html lang="en">
@@ -63,10 +65,19 @@ const { title, namespaceIngressInfos } = Astro.props;
             <h2 class="text-xl font-semibold">{title}</h2>
             <div class="flex items-center space-x-4">
               {
-                namespaceIngressInfos && (
-                  <CommandBox
+                namespaceIngressInfos && !namespaceInfo && (
+                  <ListCommandBox
                     client:load
                     namespaceData={namespaceIngressInfos}
+                  />
+                )
+              }
+              {
+                namespaceIngressInfos && namespaceInfo && (
+                  <DetailCommandBox
+                    client:load
+                    namespaces={namespaceIngressInfos}
+                    namespace={namespaceInfo}
                   />
                 )
               }

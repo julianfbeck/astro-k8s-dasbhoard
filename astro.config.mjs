@@ -32,6 +32,14 @@ export default defineConfig({
         access: "secret",
         default: "https://grafana.com",
       }),
+      GRAFANA_DASHBOARD_URL_NAMESPACE: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      GRAFANA_DASHBOARD_URL_DEPLOYMENT: envField.string({
+        context: "server",
+        access: "secret",
+      }),
     },
   },
 });

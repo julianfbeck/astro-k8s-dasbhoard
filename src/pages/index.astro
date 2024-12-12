@@ -10,6 +10,7 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
 <DefaultLayout
   title={WEBSITE_NAME}
   namespaceIngressInfos={namespaceIngressInfos}
+  namespaceInfo={undefined}
 >
   <Namespaces namespaceIngressInfos={namespaceIngressInfos} />
 </DefaultLayout>

@@ -13,13 +13,14 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
-import type { NamespaceIngressInfo } from "@/lib/k8s/client";
+import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
 
-interface CommandBoxProps {
-  namespaceData: NamespaceIngressInfo[];
+interface DetailCommandBox {
+  namespaces: NamespaceIngressInfo[];
+  namespace: NamespaceInfo;
 }
 
-export function CommandBox({ namespaceData }: CommandBoxProps) {
+export function DetailCommandBox({ namespace, namespaces }: DetailCommandBox) {
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -47,8 +48,20 @@ export function CommandBox({ namespaceData }: CommandBoxProps) {
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Ingress URLs">
+            {namespace.ingressUrls.map((url, index) => (
+              <CommandItem
+                key={`ingress-${index}`}
+                onSelect={() => window.open(url.toString(), "_blank")}
+              >
+                <Link className="mr-2 h-4 w-4" />
+                <span className="flex-1 truncate">{url.toString()}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandSeparator />
           <CommandGroup heading="Namespaces">
-            {namespaceData.map((nsInfo) => (
+            {namespaces.map((nsInfo) => (
               <CommandItem
                 key={nsInfo.namespace.metadata?.name}
                 onSelect={(value) =>
@@ -58,23 +71,6 @@ export function CommandBox({ namespaceData }: CommandBoxProps) {
                 <FolderClosed className="mr-2 h-4 w-4" />
                 <span>{nsInfo.namespace.metadata?.name ?? "Error"}</span>
               </CommandItem>
-            ))}
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Ingress URLs">
-            {namespaceData.map((nsInfo) => (
-              nsInfo.ingressUrls.map((url, index) => (
-                <CommandItem
-                  key={`ingress-${nsInfo.namespace.metadata?.name}-${index}`}
-                  onSelect={() => window.open(url.toString(), '_blank')}
-                >
-                  <Link className="mr-2 h-4 w-4" />
-                  <span className="flex-1 truncate">{url.toString()}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {nsInfo.namespace.metadata?.name}
-                  </span>
-                </CommandItem>
-              ))
             ))}
           </CommandGroup>
         </CommandList>

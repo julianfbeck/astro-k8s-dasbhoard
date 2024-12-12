@@ -1,10 +1,13 @@
 ---
 import type { NamespaceInfo } from "@/lib/k8s/client";
-import { GRAFANA_BASE_URL } from "astro:env/server";
+import {
+  GRAFANA_BASE_URL,
+  GRAFANA_DASHBOARD_URL_DEPLOYMENT,
+  GRAFANA_DASHBOARD_URL_NAMESPACE,
+} from "astro:env/server";
 interface Props {
   namespaceInfo: NamespaceInfo;
   name: string;
-  grafanaBaseUrl: string;
 }
 const { namespaceInfo, name } = Astro.props;
 const { namespace, ingressUrls, services, deployments, resourceUsage } =
@@ -13,12 +16,6 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
 const grafanaBaseUrl = GRAFANA_BASE_URL;
 
 // Dashboard names
-const DASHBOARD_NAMES = {
-  namespace:
-    "a87fb0d919ec0ea5f6543124e16c42a5/kubernetes-compute-resources-namespace-workloads",
-  deployment:
-    "a164a7f0339f99e89cea5cb47e9be617/kubernetes-compute-resources-workload",
-} as const;
 
 // Function to generate Loki logs URL for deployments with namespace filter
 const getDeploymentLogsUrl = (deploymentName: string) =>
@@ -26,11 +23,11 @@ const getDeploymentLogsUrl = (deploymentName: string) =>
 
 // Function to generate Grafana dashboard URL for deployments
 const getGrafanaDashboardUrl = (serviceName: string) =>
-  `${grafanaBaseUrl}/d/${DASHBOARD_NAMES.deployment}?var-datasource=Prometheus&var-namespace=${name}&var-deployment=${serviceName}`;
+  `${grafanaBaseUrl}/d/${GRAFANA_DASHBOARD_URL_NAMESPACE}?var-datasource=Prometheus&var-namespace=${name}&var-deployment=${serviceName}`;
 
 // Function to get Namespace dashboard URL
 const getNamespaceDashboardUrl = () =>
-  `${grafanaBaseUrl}/d/${DASHBOARD_NAMES.namespace}?var-datasource=Prometheus&var-namespace=${name}`;
+  `${grafanaBaseUrl}/d/${GRAFANA_DASHBOARD_URL_DEPLOYMENT}?var-datasource=Prometheus&var-namespace=${name}`;
 ---
 
 <div
