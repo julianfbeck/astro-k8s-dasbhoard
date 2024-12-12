@@ -1,14 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  Calculator,
-  Calendar,
-  CreditCard,
-  Settings,
-  Smile,
-  User,
-} from "lucide-react";
+import { FolderClosed, Link } from "lucide-react";
 
 import {
   CommandDialog,
@@ -20,8 +13,13 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import type { NamespaceIngressInfo } from "@/lib/k8s/client";
 
-export function CommandBox() {
+interface CommandBoxProps {
+  namespaceData: NamespaceIngressInfo[];
+}
+
+export function CommandBox({ namespaceData }: CommandBoxProps) {
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -49,37 +47,35 @@ export function CommandBox() {
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Suggestions">
-            <CommandItem>
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>Calendar</span>
-            </CommandItem>
-            <CommandItem>
-              <Smile className="mr-2 h-4 w-4" />
-              <span>Search Emoji</span>
-            </CommandItem>
-            <CommandItem>
-              <Calculator className="mr-2 h-4 w-4" />
-              <span>Calculator</span>
-            </CommandItem>
+          <CommandGroup heading="Namespaces">
+            {namespaceData.map((nsInfo) => (
+              <CommandItem
+                key={nsInfo.namespace.metadata?.name}
+                onSelect={(value) =>
+                  window.open(`/namespace/${value}`, "_blank")
+                }
+              >
+                <FolderClosed className="mr-2 h-4 w-4" />
+                <span>{nsInfo.namespace.metadata?.name ?? "Error"}</span>
+              </CommandItem>
+            ))}
           </CommandGroup>
           <CommandSeparator />
-          <CommandGroup heading="Settings">
-            <CommandItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-              <CommandShortcut>⌘P</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <CreditCard className="mr-2 h-4 w-4" />
-              <span>Billing</span>
-              <CommandShortcut>⌘B</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-              <CommandShortcut>⌘S</CommandShortcut>
-            </CommandItem>
+          <CommandGroup heading="Ingress URLs">
+            {namespaceData.map((nsInfo) => (
+              nsInfo.ingressUrls.map((url, index) => (
+                <CommandItem
+                  key={`ingress-${nsInfo.namespace.metadata?.name}-${index}`}
+                  onSelect={() => window.open(url.toString(), '_blank')}
+                >
+                  <Link className="mr-2 h-4 w-4" />
+                  <span className="flex-1 truncate">{url.toString()}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {nsInfo.namespace.metadata?.name}
+                  </span>
+                </CommandItem>
+              ))
+            ))}
           </CommandGroup>
         </CommandList>
       </CommandDialog>

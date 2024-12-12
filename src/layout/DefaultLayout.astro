@@ -1,73 +1,113 @@
 ---
+import { CommandBox } from "@/components/custom/CommandBox";
+import { ModeToggle } from "@/components/custom/ModeToggle";
+import type { NamespaceIngressInfo } from "@/lib/k8s/client";
 import { CommandBox } from '@/components/custom/CommandBox';
 import { ModeToggle } from '@/components/custom/ModeToggle';
 // DashboardLayout.astro
 interface Props {
   title: string;
+  namespaceIngressInfos: NamespaceIngressInfo[] | undefined;
 }
-const { title } = Astro.props;
+const { title, namespaceIngressInfos } = Astro.props;
 ---
+
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <style>
-        :root {
-            --sidebar-bg: 221.2 83.2% 53.3%;
-            --sidebar-fg: 210 40% 98%;
-        }
-        .dark {
-            --sidebar-bg: 217.2 32.6% 17.5%;
-            --sidebar-fg: 210 40% 98%;
-        }
+      :root {
+        --sidebar-bg: 221.2 83.2% 53.3%;
+        --sidebar-fg: 210 40% 98%;
+      }
+      .dark {
+        --sidebar-bg: 217.2 32.6% 17.5%;
+        --sidebar-fg: 210 40% 98%;
+      }
     </style>
-</head>
-<body class="bg-background text-foreground">
+  </head>
+  <body class="bg-background text-foreground">
     <div class="flex h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-gradient-to-b from-[hsl(var(--sidebar-bg))] to-[hsl(var(--sidebar-bg)_/_0.8)] text-[hsl(var(--sidebar-fg))] p-6">
-            <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
-            <nav>
-                <ul class="space-y-2">
-                    <li><a href="/" class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200">Namespaces</a></li>
-                    <li><a href="/favs" class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200">Favourites</a></li>
-                </ul>
-            </nav>
-        </aside>
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Header -->
-            <header class="bg-gradient-to-r from-secondary/80 via-secondary to-secondary/80 text-secondary-foreground shadow-sm p-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-semibold">{title}</h2>
-                    <div class="flex items-center space-x-4">
-                        <CommandBox client:load />
-                        <ModeToggle client:load />
-                    </div>
-            </header>
-            <!-- Main Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
-                <slot />
-            </main>
-        </div>
+      <!-- Sidebar -->
+      <aside
+        class="w-64 bg-gradient-to-b from-[hsl(var(--sidebar-bg))] to-[hsl(var(--sidebar-bg)_/_0.8)] text-[hsl(var(--sidebar-fg))] p-6"
+      >
+        <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+        <nav>
+          <ul class="space-y-2">
+            <li>
+              <a
+                href="/"
+                class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200"
+                >Namespaces</a
+              >
+            </li>
+            <li>
+              <a
+                href="/favs"
+                class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200"
+                >Favourites</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <!-- Header -->
+        <header
+          class="bg-gradient-to-r from-secondary/80 via-secondary to-secondary/80 text-secondary-foreground shadow-sm p-4"
+        >
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">{title}</h2>
+            <div class="flex items-center space-x-4">
+              {
+                namespaceIngressInfos && (
+                  <CommandBox
+                    client:load
+                    namespaceData={namespaceIngressInfos}
+                  />
+                )
+              }
+              <ModeToggle client:load />
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6">
+          <slot />
+        </main>
+      </div>
     </div>
-</body>
+  </body>
+
+  <script is:inline>
+    const getThemePreference = () => {
+      if (
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("theme")
+      ) {
+        return localStorage.getItem("theme");
+      }
+      return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    };
+    const isDark = getThemePreference() === "dark";
+    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+    if (typeof localStorage !== "undefined") {
+      const observer = new MutationObserver(() => {
+        const isDark = document.documentElement.classList.contains("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+    }
+  </script>
 </html>
-<script is:inline>
-	const getThemePreference = () => {
-		if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-			return localStorage.getItem('theme');
-		}
-		return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-	};
-	const isDark = getThemePreference() === 'dark';
-	document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
- 
-	if (typeof localStorage !== 'undefined') {
-		const observer = new MutationObserver(() => {
-			const isDark = document.documentElement.classList.contains('dark');
-			localStorage.setItem('theme', isDark ? 'dark' : 'light');
-		});
-		observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-	}
-</script>
