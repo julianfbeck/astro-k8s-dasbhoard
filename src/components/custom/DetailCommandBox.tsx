@@ -14,6 +14,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
+import { getWorkloadLogsUrl } from "@/lib/utils";
 
 interface DetailCommandBox {
   namespaces: NamespaceIngressInfo[];
@@ -48,6 +49,28 @@ export function DetailCommandBox({ namespace, namespaces }: DetailCommandBox) {
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Logs">
+            {namespace.deployments.map((deployment, index) => (
+              <CommandItem
+                key={`deployment-${index}`}
+                onSelect={() =>
+                  window.open(
+                    getWorkloadLogsUrl(
+                      namespace.namespace.metadata?.name ?? "",
+                      deployment.metadata?.name ?? "",
+                    ),
+                    "_blank",
+                  )
+                }
+              >
+                <Link className="mr-2 h-4 w-4" />
+                <span className="flex-1 truncate">
+                  Logs for ${deployment.metadata?.name}
+                </span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandSeparator />
           <CommandGroup heading="Ingress URLs">
             {namespace.ingressUrls.map((url, index) => (
               <CommandItem
