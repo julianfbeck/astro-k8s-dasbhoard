@@ -1,5 +1,5 @@
 ---
-import { CommandDialogDemo } from '@/components/custom/CommandBox';
+import { CommandBox } from '@/components/custom/CommandBox';
 import { ModeToggle } from '@/components/custom/ModeToggle';
 // DashboardLayout.astro
 interface Props {
@@ -41,7 +41,7 @@ const { title } = Astro.props;
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-semibold">{title}</h2>
                     <div class="flex items-center space-x-4">
-                        <CommandDialogDemo client:load />
+                        <CommandBox client:load />
                         <ModeToggle client:load />
                     </div>
             </header>
