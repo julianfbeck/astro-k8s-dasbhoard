@@ -4,13 +4,19 @@ import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
 import { GRAFANA_BASE_URL } from "astro:env/server";
-// DashboardLayout.astro
+
 interface Props {
   title: string;
   namespaceIngressInfos: NamespaceIngressInfo[] | undefined;
   namespaceInfo: NamespaceInfo | undefined;
 }
+
 const { title, namespaceIngressInfos, namespaceInfo } = Astro.props;
+
+const navItems = [
+  { href: "/", label: "Namespaces" },
+  { href: "/favs", label: "Favourites" },
+];
 ---
 
 <html lang="en">
@@ -18,53 +24,42 @@ const { title, namespaceIngressInfos, namespaceInfo } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
-    <style>
-      :root {
-        --sidebar-bg: 221.2 83.2% 53.3%;
-        --sidebar-fg: 210 40% 98%;
-      }
-      .dark {
-        --sidebar-bg: 217.2 32.6% 17.5%;
-        --sidebar-fg: 210 40% 98%;
-      }
-    </style>
   </head>
   <body class="bg-background text-foreground">
-    <div class="flex h-screen">
+    <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
-      <aside
-        class="w-64 bg-gradient-to-b from-[hsl(var(--sidebar-bg))] to-[hsl(var(--sidebar-bg)_/_0.8)] text-[hsl(var(--sidebar-fg))] p-6"
-      >
-        <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
-        <nav>
-          <ul class="space-y-2">
-            <li>
-              <a
-                href="/"
-                class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200"
-                >Namespaces</a
-              >
-            </li>
-            <li>
-              <a
-                href="/favs"
-                class="block py-2 px-4 rounded hover:bg-[hsl(var(--sidebar-fg)_/_0.1)] transition-colors duration-200"
-                >Favourites</a
-              >
-            </li>
-          </ul>
-        </nav>
+      <aside class="w-60 flex flex-col bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground shadow-xl">
+        <div class="p-5">
+          <h1 class="text-xl font-bold tracking-tight mb-6">Dashboard</h1>
+          <nav class="space-y-1">
+            {
+              navItems.map((item) => (
+                <a
+                  href={item.href}
+                  class="block py-2.5 px-4 rounded-lg transition-all duration-200 hover:bg-white/10 relative group"
+                  data-active={Astro.url.pathname === item.href}
+                >
+                  <span class="relative z-10">{item.label}</span>
+                  {Astro.url.pathname === item.href && (
+                    <div class="absolute inset-0 bg-white/15 rounded-lg" />
+                  )}
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+        <div class="mt-auto p-5">
+          <ModeToggle client:load />
+        </div>
       </aside>
 
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-h-0">
         <!-- Header -->
-        <header
-          class="bg-gradient-to-r from-secondary/80 via-secondary to-secondary/80 text-secondary-foreground shadow-sm p-4"
-        >
-          <div class="flex items-center justify-between">
-            <h2 class="text-xl font-semibold">{title}</h2>
-            <div class="flex items-center space-x-4">
+        <header class="h-16 bg-gradient-to-r from-secondary/90 via-secondary to-secondary/90 text-secondary-foreground shadow-md">
+          <div class="h-full mx-6 flex items-center justify-between">
+            <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
+            <div class="flex items-center space-x-6">
               {
                 namespaceIngressInfos && !namespaceInfo && (
                   <ListCommandBox
@@ -83,14 +78,15 @@ const { title, namespaceIngressInfos, namespaceInfo } = Astro.props;
                   />
                 )
               }
-              <ModeToggle client:load />
             </div>
           </div>
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto p-6">
-          <slot />
+        <main class="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+          <div class="max-w-7xl mx-auto">
+            <slot />
+          </div>
         </main>
       </div>
     </div>
@@ -98,18 +94,17 @@ const { title, namespaceIngressInfos, namespaceInfo } = Astro.props;
 
   <script is:inline>
     const getThemePreference = () => {
-      if (
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("theme")
-      ) {
+      if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
         return localStorage.getItem("theme");
       }
       return window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
     };
+    
     const isDark = getThemePreference() === "dark";
     document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+    
     if (typeof localStorage !== "undefined") {
       const observer = new MutationObserver(() => {
         const isDark = document.documentElement.classList.contains("dark");
