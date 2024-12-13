@@ -1,10 +1,6 @@
 ---
+import { getGrafanaDashboardUrl, getNamespaceDashboardUrl, getWorkloadLogsUrl } from "@/lib/grafana";
 import type { NamespaceInfo } from "@/lib/k8s/client";
-import {
-  getNamespaceDashboardUrl,
-  getWorkloadLogsUrl,
-  getGrafanaDashboardUrl,
-} from "@/lib/utils";
 
 interface Props {
   namespaceInfo: NamespaceInfo;
@@ -53,7 +49,7 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
         </div>
         <div>
           <span class="font-medium">Status:</span>
-          {namespace.status.phase}
+          {namespace.status?.phase}
         </div>
       </div>
     </div>
@@ -116,19 +112,19 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
             {deployments.map((deployment) => (
               <div class="bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground p-3 rounded">
                 <h4 class="font-medium text-sm mb-2 text-primary">
-                  {deployment.metadata.name}
+                  {deployment.metadata?.name}
                 </h4>
                 <p class="text-xs">
                   <span class="font-medium">Replicas:</span>{" "}
-                  {deployment.spec.replicas}
+                  {deployment.spec?.replicas}
                 </p>
                 <p class="text-xs">
                   <span class="font-medium">Strategy:</span>{" "}
-                  {deployment.spec.strategy.type}
+                  {deployment.spec?.strategy?.type}
                 </p>
                 <div class="mt-2 flex space-x-2">
                   <a
-                    href={getWorkloadLogsUrl(name, deployment.metadata.name)}
+                    href={getWorkloadLogsUrl(name, deployment.metadata?.name || "")}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="text-xs bg-primary text-primary-foreground px-2 py-1 rounded hover:bg-primary/90 transition-colors duration-200"
@@ -138,7 +134,7 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
                   <a
                     href={getGrafanaDashboardUrl(
                       name,
-                      deployment.metadata.name
+                      deployment.metadata?.name || ""
                     )}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -171,16 +167,16 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
             {services.map((service) => (
               <div class="bg-muted dark:bg-muted text-muted-foreground dark:text-muted-foreground p-3 rounded">
                 <h4 class="font-medium text-sm mb-2 text-primary">
-                  {service.metadata.name}
+                  {service.metadata?.name}
                 </h4>
                 <p class="text-xs">
-                  <span class="font-medium">Type:</span> {service.spec.type}
+                  <span class="font-medium">Type:</span> {service.spec?.type}
                 </p>
                 <p class="text-xs">
                   <span class="font-medium">Cluster IP:</span>{" "}
-                  {service.spec.clusterIP}
+                  {service.spec?.clusterIP}
                 </p>
-                {service.spec.ports && (
+                {service.spec?.ports && (
                   <p class="text-xs">
                     <span class="font-medium">Ports:</span>{" "}
                     {service.spec.ports

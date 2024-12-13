@@ -1,8 +1,5 @@
-"use client";
-
 import * as React from "react";
 import { FolderClosed, Link } from "lucide-react";
-
 import {
   CommandDialog,
   CommandEmpty,
@@ -14,14 +11,18 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
-import { getWorkloadLogsUrl } from "@/lib/utils";
 
 interface DetailCommandBox {
   namespaces: NamespaceIngressInfo[];
   namespace: NamespaceInfo;
+  grafana_base_url: string;
 }
 
-export function DetailCommandBox({ namespace, namespaces }: DetailCommandBox) {
+export function DetailCommandBox({
+  namespace,
+  namespaces,
+  grafana_base_url,
+}: DetailCommandBox) {
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -35,6 +36,9 @@ export function DetailCommandBox({ namespace, namespaces }: DetailCommandBox) {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
+
+  const getWorkloadLogsUrl = (namespace: string, deploymentName: string) =>
+    `${grafana_base_url}/explore?schemaVersion=1&panes=%7B%22GCQ%22%3A%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bapp%3D%5C%22${deploymentName}%5C%22%2Cnamespace%3D%5C%22${namespace}%5C%22%7D%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22loki%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D%7D&orgId=1`;
 
   return (
     <>
@@ -52,7 +56,7 @@ export function DetailCommandBox({ namespace, namespaces }: DetailCommandBox) {
           <CommandGroup heading="Logs">
             {namespace.deployments.map((deployment, index) => (
               <CommandItem
-                key={`deployment-${index}`}
+                key={`logs-${index}`}
                 onSelect={() =>
                   window.open(
                     getWorkloadLogsUrl(
@@ -65,7 +69,7 @@ export function DetailCommandBox({ namespace, namespaces }: DetailCommandBox) {
               >
                 <Link className="mr-2 h-4 w-4" />
                 <span className="flex-1 truncate">
-                  Logs for ${deployment.metadata?.name}
+                  {deployment.metadata?.name} Logs
                 </span>
               </CommandItem>
             ))}
@@ -87,9 +91,7 @@ export function DetailCommandBox({ namespace, namespaces }: DetailCommandBox) {
             {namespaces.map((nsInfo) => (
               <CommandItem
                 key={nsInfo.namespace.metadata?.name}
-                onSelect={(value) =>
-                  window.open(`/namespace/${value}`, "_blank")
-                }
+                onSelect={(value) => window.open(`/namespace/${value}`)}
               >
                 <FolderClosed className="mr-2 h-4 w-4" />
                 <span>{nsInfo.namespace.metadata?.name ?? "Error"}</span>

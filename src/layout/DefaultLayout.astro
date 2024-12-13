@@ -3,6 +3,7 @@ import { DetailCommandBox } from "@/components/custom/DetailCommandBox";
 import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
+import { GRAFANA_BASE_URL } from "astro:env/server";
 // DashboardLayout.astro
 interface Props {
   title: string;
@@ -78,6 +79,7 @@ const { title, namespaceIngressInfos, namespaceInfo } = Astro.props;
                     client:load
                     namespaces={namespaceIngressInfos}
                     namespace={namespaceInfo}
+                    grafana_base_url={GRAFANA_BASE_URL}
                   />
                 )
               }
