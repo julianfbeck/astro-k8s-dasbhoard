@@ -1,67 +1,110 @@
 ---
 import { getK8sNamespacesWithIngress } from "@/lib/k8s/client";
-// K8sNamespacesAndIngress.astro
 
-// This uses an optimized function that fetches all ingresses in a single API call
 const namespaceIngressInfos = await getK8sNamespacesWithIngress();
 ---
 
-<div class="bg-background text-foreground rounded-lg border shadow-sm">
-    <div class="p-4 border-b">
-        <h2 class="text-lg font-semibold">Kubernetes Namespaces and Ingress URLs</h2>
+<div class="bg-background text-foreground rounded-xl border shadow-lg">
+    <div class="px-6 py-4 border-b flex items-center justify-between">
+        <h2 class="text-lg font-semibold tracking-tight">Kubernetes Namespaces</h2>
+        <span class="text-sm text-muted-foreground">{namespaceIngressInfos.length} namespaces</span>
     </div>
     {namespaceIngressInfos.length === 0 ? (
-        <p class="p-4 text-muted-foreground">No namespaces or ingress URLs found.</p>
+        <div class="p-6 flex items-center justify-center text-muted-foreground">
+            <p>No namespaces or ingress URLs found.</p>
+        </div>
     ) : (
-        <div class="divide-y divide-border" id="namespaces-container">
+        <div class="divide-y divide-border/50" id="namespaces-container">
             {namespaceIngressInfos.map(({ namespace, ingressUrls }) => (
-                <div class="p-4 space-y-2" data-namespace={namespace.metadata?.name}>
-                    <div class="flex items-center justify-between">
-                        <a href={`/namespace/${namespace.metadata?.name}`} class="text-primary hover:underline">
-                                {namespace.metadata?.name}
-                            </a>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs text-muted-foreground">{new Date(namespace.metadata?.creationTimestamp || '').toLocaleDateString()}</span>
-                            <button class="heart-button text-muted-foreground hover:text-red-500 transition-colors" data-namespace={namespace.metadata?.name}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <div class="p-6 space-y-3 hover:bg-muted/50 transition-colors" data-namespace={namespace.metadata?.name}>
+                    <div class="flex items-center justify-between group">
+                        <a 
+                            href={`/namespace/${namespace.metadata?.name}`} 
+                            class="text-primary hover:text-primary/80 font-medium transition-colors"
+                        >
+                            {namespace.metadata?.name}
+                        </a>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-xs text-muted-foreground">
+                                Created {new Date(namespace.metadata?.creationTimestamp || '').toLocaleDateString()}
+                            </span>
+                            <button 
+                                class="heart-button text-muted-foreground hover:text-red-500 transition-colors p-1.5 rounded-full hover:bg-red-500/10" 
+                                data-namespace={namespace.metadata?.name}
+                            >
+                                <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="16" 
+                                    height="16" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    stroke-width="2" 
+                                    stroke-linecap="round" 
+                                    stroke-linejoin="round" 
+                                    class="heart-icon"
+                                >
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
                             </button>
                         </div>
                     </div>
                     
-                    {/* Labels */}
+                    {/* Labels and Annotations */}
                     {((namespace.metadata?.labels && Object.keys(namespace.metadata.labels).length > 0) ||
                     (namespace.metadata?.annotations && Object.keys(namespace.metadata.annotations).length > 0)) && (
-                    <div class="flex flex-wrap gap-1 mt-1">
-                        {[
-                        ...(Object.entries(namespace.metadata?.labels || {})
-                            .map(([key, value]) => ({ key, value, type: 'Label' }))),
-                        ...(Object.entries(namespace.metadata?.annotations || {})
-                            .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
-                            .map(([key, value]) => ({ key, value, type: 'Annotation' })))
-                        ].map(({ key, value, type }) => (
-                        <span 
-                            class={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            type === 'Label' 
-                                ? 'bg-secondary text-secondary-foreground' 
-                                : 'bg-accent text-accent-foreground'
-                            }`}
-                            title={`${type}: ${key}`}
-                        >
-                            {key}: {value}
-                        </span>
-                        ))}
-                    </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            {[
+                                ...(Object.entries(namespace.metadata?.labels || {})
+                                    .map(([key, value]) => ({ key, value, type: 'Label' }))),
+                                ...(Object.entries(namespace.metadata?.annotations || {})
+                                    .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
+                                    .map(([key, value]) => ({ key, value, type: 'Annotation' })))
+                            ].map(({ key, value, type }) => (
+                                <span 
+                                    class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
+                                        type === 'Label' 
+                                            ? 'bg-secondary/30 text-secondary-foreground ring-secondary/30' 
+                                            : 'bg-accent/30 text-accent-foreground ring-accent/30'
+                                    }`}
+                                    title={`${type}: ${key}`}
+                                >
+                                    {key}: {value}
+                                </span>
+                            ))}
+                        </div>
                     )}
 
                     {/* Ingress URLs */}
                     {ingressUrls.length > 0 && (
-                        <div class="space-y-1 mt-2">
-                            <h4 class="text-xs font-medium text-muted-foreground">Ingress URLs:</h4>
-                            <ul class="space-y-1">
+                        <div class="space-y-2">
+                            <h4 class="text-xs font-medium text-muted-foreground">Ingress URLs</h4>
+                            <ul class="space-y-1.5">
                                 {ingressUrls.map((url) => (
                                     <li class="text-xs">
-                                        <a href={url.toString()} target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">
+                                        <a 
+                                            href={url.toString()} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            class="text-primary hover:text-primary/80 hover:underline transition-colors inline-flex items-center"
+                                        >
                                             {url.toString()}
+                                            <svg 
+                                                xmlns="http://www.w3.org/2000/svg" 
+                                                width="12" 
+                                                height="12" 
+                                                viewBox="0 0 24 24" 
+                                                fill="none" 
+                                                stroke="currentColor" 
+                                                stroke-width="2" 
+                                                stroke-linecap="round" 
+                                                stroke-linejoin="round" 
+                                                class="ml-1"
+                                            >
+                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                                <polyline points="15 3 21 3 21 9"></polyline>
+                                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                                            </svg>
                                         </a>
                                     </li>
                                 ))}
@@ -79,20 +122,17 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
     document.addEventListener('DOMContentLoaded', () => {
         const cookieName = 'heartedUnicorns';
 
-        // Function to get hearted unicorns from cookie
         function getHeartedUnicorns() {
             const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
             return cookie ? JSON.parse(cookie.split('=')[1]) : [];
         }
 
-        // Function to save hearted unicorns to cookie
         function saveHeartedUnicorns(heartedList) {
             const expirationDate = new Date();
-            expirationDate.setFullYear(expirationDate.getFullYear() + 1); // Cookie expires in 1 year
+            expirationDate.setFullYear(expirationDate.getFullYear() + 1);
             document.cookie = `${cookieName}=${JSON.stringify(heartedList)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Strict`;
         }
 
-        // Function to sort namespaces
         function sortNamespaces() {
             const container = document.getElementById('namespaces-container');
             const namespaces = Array.from(container.children);
@@ -110,9 +150,9 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
             namespaces.forEach(namespace => container.appendChild(namespace));
         }
 
-        // Initialize hearts based on cookie
         const heartedUnicorns = getHeartedUnicorns();
         const heartButtons = document.querySelectorAll('.heart-button');
+        
         heartButtons.forEach(button => {
             const namespace = button.getAttribute('data-namespace');
             const icon = button.querySelector('.heart-icon');
@@ -121,7 +161,6 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
             }
         });
 
-        // Add click event listeners
         heartButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const namespace = button.getAttribute('data-namespace');
@@ -146,7 +185,6 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
             });
         });
 
-        // Initial sort
         sortNamespaces();
     });
 </script>
