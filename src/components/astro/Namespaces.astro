@@ -18,12 +18,42 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
             {namespaceIngressInfos.map(({ namespace, ingressUrls }) => (
                 <div class="p-6 space-y-3 hover:bg-muted/50 transition-colors" data-namespace={namespace.metadata?.name}>
                     <div class="flex items-center justify-between group">
-                        <a 
-                            href={`/namespace/${namespace.metadata?.name}`} 
-                            class="text-primary hover:text-primary/80 font-medium transition-colors"
-                        >
-                            {namespace.metadata?.name}
-                        </a>
+                        <div class="space-y-1">
+                            <a 
+                                href={`/namespace/${namespace.metadata?.name}`} 
+                                class="text-primary hover:text-primary/80 font-medium transition-colors"
+                            >
+                                {namespace.metadata?.name}
+                            </a>
+                            {/* Labels Count */}
+                            {((namespace.metadata?.labels && Object.keys(namespace.metadata.labels).length > 0) ||
+                            (namespace.metadata?.annotations && Object.keys(namespace.metadata.annotations).length > 0)) && (
+                                <button 
+                                    class="text-xs text-muted-foreground hover:text-primary transition-colors labels-toggle"
+                                    data-expanded="false"
+                                >
+                                    <span class="label-count">
+                                        {Object.keys(namespace.metadata?.labels || {}).length +
+                                        Object.keys(namespace.metadata?.annotations || {})
+                                            .filter(key => key !== 'kubectl.kubernetes.io/last-applied-configuration').length} labels/annotations
+                                    </span>
+                                    <svg 
+                                        xmlns="http://www.w3.org/2000/svg" 
+                                        width="12" 
+                                        height="12" 
+                                        viewBox="0 0 24 24" 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        stroke-width="2" 
+                                        stroke-linecap="round" 
+                                        stroke-linejoin="round" 
+                                        class="inline-block ml-1 transform transition-transform duration-200"
+                                    >
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
                         <div class="flex items-center space-x-4">
                             <span class="text-xs text-muted-foreground">
                                 Created {new Date(namespace.metadata?.creationTimestamp || '').toLocaleDateString()}
@@ -50,28 +80,44 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
                         </div>
                     </div>
                     
-                    {/* Labels and Annotations */}
+                    {/* Labels and Annotations - Table format */}
                     {((namespace.metadata?.labels && Object.keys(namespace.metadata.labels).length > 0) ||
                     (namespace.metadata?.annotations && Object.keys(namespace.metadata.annotations).length > 0)) && (
-                        <div class="flex flex-wrap gap-1.5">
-                            {[
-                                ...(Object.entries(namespace.metadata?.labels || {})
-                                    .map(([key, value]) => ({ key, value, type: 'Label' }))),
-                                ...(Object.entries(namespace.metadata?.annotations || {})
-                                    .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
-                                    .map(([key, value]) => ({ key, value, type: 'Annotation' })))
-                            ].map(({ key, value, type }) => (
-                                <span 
-                                    class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-                                        type === 'Label' 
-                                            ? 'bg-secondary/30 text-secondary-foreground ring-secondary/30' 
-                                            : 'bg-accent/30 text-accent-foreground ring-accent/30'
-                                    }`}
-                                    title={`${type}: ${key}`}
-                                >
-                                    {key}: {value}
-                                </span>
-                            ))}
+                        <div class="labels-container hidden">
+                            <div class="mt-2 rounded-lg border border-border overflow-hidden">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-muted/50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Type</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Key</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-border">
+                                        {[
+                                            ...(Object.entries(namespace.metadata?.labels || {})
+                                                .map(([key, value]) => ({ key, value, type: 'Label' }))),
+                                            ...(Object.entries(namespace.metadata?.annotations || {})
+                                                .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
+                                                .map(([key, value]) => ({ key, value, type: 'Annotation' })))
+                                        ].map(({ key, value, type }) => (
+                                            <tr class="hover:bg-muted/50">
+                                                <td class="px-4 py-2 text-xs">
+                                                    <span class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                                        type === 'Label' 
+                                                            ? 'bg-secondary/30 text-secondary-foreground' 
+                                                            : 'bg-accent/30 text-accent-foreground'
+                                                    }`}>
+                                                        {type}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2 text-xs font-mono">{key}</td>
+                                                <td class="px-4 py-2 text-xs font-mono">{value}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
 
@@ -118,7 +164,6 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
 </div>
 
 <script>
-    // Client-side JavaScript for heart functionality with cookie storage and sorting
     document.addEventListener('DOMContentLoaded', () => {
         const cookieName = 'heartedUnicorns';
 
@@ -150,6 +195,7 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
             namespaces.forEach(namespace => container.appendChild(namespace));
         }
 
+        // Initialize hearts
         const heartedUnicorns = getHeartedUnicorns();
         const heartButtons = document.querySelectorAll('.heart-button');
         
@@ -161,6 +207,7 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
             }
         });
 
+        // Heart click handlers
         heartButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const namespace = button.getAttribute('data-namespace');
@@ -170,14 +217,12 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
                 if (icon.getAttribute('fill') === 'none') {
                     icon.setAttribute('fill', 'currentColor');
                     heartedList.push(namespace);
-                    console.log(`Hearted unicorn: ${namespace}`);
                 } else {
                     icon.setAttribute('fill', 'none');
                     const index = heartedList.indexOf(namespace);
                     if (index > -1) {
                         heartedList.splice(index, 1);
                     }
-                    console.log(`Unhearted unicorn: ${namespace}`);
                 }
                 
                 saveHeartedUnicorns(heartedList);
@@ -185,6 +230,29 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
             });
         });
 
+        // Labels toggle functionality
+        const labelToggles = document.querySelectorAll('.labels-toggle');
+        
+        labelToggles.forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const namespaceDiv = toggle.closest('[data-namespace]');
+                const container = namespaceDiv.querySelector('.labels-container');
+                const arrow = toggle.querySelector('svg');
+                const isExpanded = toggle.getAttribute('data-expanded') === 'true';
+                
+                if (isExpanded) {
+                    container.classList.add('hidden');
+                    arrow.style.transform = 'rotate(0deg)';
+                    toggle.setAttribute('data-expanded', 'false');
+                } else {
+                    container.classList.remove('hidden');
+                    arrow.style.transform = 'rotate(180deg)';
+                    toggle.setAttribute('data-expanded', 'true');
+                }
+            });
+        });
+
+        // Initial sort
         sortNamespaces();
     });
 </script>
