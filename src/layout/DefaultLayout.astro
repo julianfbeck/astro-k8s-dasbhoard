@@ -3,7 +3,7 @@ import { DetailCommandBox } from "@/components/custom/DetailCommandBox";
 import EnvironmentNav from "@/components/custom/EnvironmentNav";
 import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
-import { getConfig, type SideBarUrl } from "@/lib/config";
+import { getConfig } from "@/lib/config";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
 
 interface Props {
@@ -18,33 +18,6 @@ const navItems = [
   { href: "/", label: "Namespaces" },
   { href: "/favs", label: "Favourites" },
 ];
-
-const sidebarUrls = [
-  {
-    name: "Grafana",
-    url: "https://grafana.example.com",
-    icon: "chart",
-    description: "Metrics and monitoring",
-  },
-  {
-    name: "API Docs",
-    url: "https://api.example.com",
-    icon: "text",
-    description: "API Documentation",
-  },
-  {
-    name: "Terminal",
-    url: "https://terminal.example.com",
-    icon: "terminal",
-    description: "Web Terminal Access",
-  },
-  {
-    name: "Status Page",
-    url: "https://status.example.com",
-    icon: "url",
-    description: "System Status",
-  },
-] as SideBarUrl[];
 ---
 
 <html lang="en">
@@ -111,7 +84,7 @@ const sidebarUrls = [
         <!-- Bottom Area with Environment Links and Theme Toggle -->
         <div class="border-t border-primary-foreground/10">
           <div class="p-5">
-            <EnvironmentNav client:load urls={sidebarUrls} />
+            <EnvironmentNav client:load urls={getConfig().SIDEBAR_URLS} />
           </div>
           <div class="p-5 pt-0">
             <ModeToggle client:load />

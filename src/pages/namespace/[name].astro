@@ -2,11 +2,11 @@
 import Namespace from "@/components/astro/Namespace.astro";
 import DefaultLayout from "@/layout/DefaultLayout.astro";
 import "@/styles/globals.css";
-import { WEBSITE_NAME } from "astro:env/server";
 import {
   getK8sNamespaceInfo,
   getK8sNamespacesWithIngress,
 } from "@/lib/k8s/client";
+import { getConfig } from "@/lib/config";
 
 const { name } = Astro.params;
 if (!name) {
@@ -23,7 +23,7 @@ if (!namespaceInfo) {
 ---
 
 <DefaultLayout
-  title={WEBSITE_NAME}
+  title={name + " | " + getConfig().WEBSITE_NAME}
   namespaceIngressInfos={namespaceIngressInfos}
   namespaceInfo={namespaceInfo}
 >

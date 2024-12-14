@@ -1,8 +1,6 @@
 "use client";
-
 import * as React from "react";
 import { BarChart, FileText, FolderClosed, Link, Link2, Terminal } from "lucide-react";
-
 import {
   CommandDialog,
   CommandEmpty,
@@ -19,6 +17,7 @@ interface CommandBoxProps {
   namespaceData: NamespaceIngressInfo[];
   appConfig: AppConfig;
 }
+
 const iconMap = {
   chart: BarChart,
   url: Link2,
@@ -36,14 +35,27 @@ export function ListCommandBox({ namespaceData, appConfig }: CommandBoxProps) {
         setOpen((open) => !open);
       }
     };
-
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  const handleShortcutClick = () => {
+    setOpen((open) => !open);
+  };
+
   return (
     <>
-      <div className="flex items-center space-x-2 mr-3">
+      <div 
+        className="flex items-center space-x-2 mr-3 cursor-pointer"
+        onClick={handleShortcutClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            handleShortcutClick();
+          }
+        }}
+      >
         <span className="text-sm text-muted-foreground">Press</span>
         <kbd className="inline-flex h-8 w-8 select-none items-center justify-center rounded border bg-muted px-2 font-mono text-sm font-medium text-muted-foreground opacity-100">
           <span className="text-xs">⌘</span>
