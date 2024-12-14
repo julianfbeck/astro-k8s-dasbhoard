@@ -18,6 +18,7 @@ const AppConfigSchema = z.object({
   GRAFANA_DASHBOARD_URL_NAMESPACE: z.string(),
   LABEL_SELECTOR: z.string(),
   SIDEBAR_URLS: z.array(SideBarUrlSchema),
+  SPECIAL_NAMESPACES: z.array(z.string()),
 });
 
 type AppConfig = z.infer<typeof AppConfigSchema>;

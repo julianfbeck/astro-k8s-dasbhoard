@@ -45,7 +45,7 @@ const sidebarUrls = [
     icon: "url",
     description: "System Status",
   },
-] as SideBarUrl[]
+] as SideBarUrl[];
 ---
 
 <html lang="en">
@@ -53,11 +53,41 @@ const sidebarUrls = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+
+    <script is:inline>
+      const getThemePreference = () => {
+        if (
+          typeof localStorage !== "undefined" &&
+          localStorage.getItem("theme")
+        ) {
+          return localStorage.getItem("theme");
+        }
+        return window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      };
+
+      const isDark = getThemePreference() === "dark";
+      document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+
+      if (typeof localStorage !== "undefined") {
+        const observer = new MutationObserver(() => {
+          const isDark = document.documentElement.classList.contains("dark");
+          localStorage.setItem("theme", isDark ? "dark" : "light");
+        });
+        observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
+      }
+    </script>
   </head>
   <body class="bg-background text-foreground">
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
-      <aside class="w-60 flex flex-col bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground shadow-xl">
+      <aside
+        class="w-60 flex flex-col bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground shadow-xl"
+      >
         <!-- Main Navigation Area -->
         <div class="flex-1 p-5">
           <h1 class="text-xl font-bold tracking-tight mb-6">Dashboard</h1>
@@ -132,32 +162,4 @@ const sidebarUrls = [
       </div>
     </div>
   </body>
-
-  <script is:inline>
-    const getThemePreference = () => {
-      if (
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("theme")
-      ) {
-        return localStorage.getItem("theme");
-      }
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    };
-
-    const isDark = getThemePreference() === "dark";
-    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
-
-    if (typeof localStorage !== "undefined") {
-      const observer = new MutationObserver(() => {
-        const isDark = document.documentElement.classList.contains("dark");
-        localStorage.setItem("theme", isDark ? "dark" : "light");
-      });
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["class"],
-      });
-    }
-  </script>
 </html>
