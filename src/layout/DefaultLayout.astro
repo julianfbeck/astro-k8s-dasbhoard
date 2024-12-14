@@ -5,6 +5,7 @@ import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
 import { getConfig } from "@/lib/config";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
+import { ArrowLeft } from "lucide-react";
 
 interface Props {
   title: string;
@@ -18,6 +19,9 @@ const navItems = [
   { href: "/", label: "Namespaces" },
   { href: "/favs", label: "Favourites" },
 ];
+
+const currentPath = Astro.url.pathname;
+const isNavPath = currentPath === "/" || currentPath === "/favs";
 ---
 
 <html lang="en">
@@ -52,6 +56,17 @@ const navItems = [
           attributeFilter: ["class"],
         });
       }
+
+      // Add click handler for dashboard title
+      document.addEventListener("DOMContentLoaded", () => {
+        const dashboardTitle = document.querySelector("#dashboard-title");
+        if (dashboardTitle) {
+          dashboardTitle.addEventListener("click", () => {
+            window.location.href = "/";
+          });
+          dashboardTitle.style.cursor = "pointer";
+        }
+      });
     </script>
   </head>
   <body class="bg-background text-foreground">
@@ -62,17 +77,19 @@ const navItems = [
       >
         <!-- Main Navigation Area -->
         <div class="flex-1 p-5">
-          <h1 class="text-xl font-bold tracking-tight mb-6">Dashboard</h1>
+          <h1 id="dashboard-title" class="text-xl font-bold tracking-tight mb-6 hover:text-primary-foreground/90 transition-colors">
+            Dashboard
+          </h1>
           <nav class="space-y-1">
             {
               navItems.map((item) => (
                 <a
                   href={item.href}
                   class="block py-2.5 px-4 rounded-lg transition-all duration-200 hover:bg-white/10 relative group"
-                  data-active={Astro.url.pathname === item.href}
+                  data-active={currentPath === item.href}
                 >
                   <span class="relative z-10">{item.label}</span>
-                  {Astro.url.pathname === item.href && (
+                  {currentPath === item.href && (
                     <div class="absolute inset-0 bg-white/15 rounded-lg" />
                   )}
                 </a>
@@ -99,7 +116,18 @@ const navItems = [
           class="h-16 bg-gradient-to-r from-secondary/90 via-secondary to-secondary/90 text-secondary-foreground shadow-md"
         >
           <div class="h-full mx-6 flex items-center justify-between">
-            <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
+            <div class="flex items-center space-x-4">
+              {!isNavPath && (
+                <a 
+                  href="/"
+                  class="flex items-center space-x-2 hover:text-secondary-foreground/80 transition-colors"
+                >
+                  <ArrowLeft class="h-5 w-5" />
+                  <span>Back</span>
+                </a>
+              )}
+              <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
+            </div>
             <div class="flex items-center space-x-6">
               {
                 namespaceIngressInfos && !namespaceInfo && (
