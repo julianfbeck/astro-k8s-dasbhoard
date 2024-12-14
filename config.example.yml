@@ -21,7 +21,4 @@ SIDEBAR_URLS:
     icon: "url"
     description: "Collection of external development tools"
 SPECIAL_NAMESPACES:
-  - "production"
-  - "staging"
-  - "development"
   - "dev"
