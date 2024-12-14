@@ -30,7 +30,7 @@ export type NamespaceIngressInfo = {
 
 export type NamespaceInfo = {
   namespace: V1Namespace;
-  ingressUrls: URL[];
+  ingressUrls: string[];
   services: V1Service[];
   deployments: V1Deployment[];
   resourceUsage: ResourceUsage;
@@ -51,7 +51,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
   if (cachedData) {
     return cachedData.map((item) => ({
       ...item,
-      ingressUrls: item.ingressUrls.map((url) => new URL(url)),
+      ingressUrls: item.ingressUrls.map((url) => url.toString()),
     }));
   }
 
@@ -104,10 +104,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
     }
 
     cache.set(cacheKey, namespaceIngressInfos);
-    return namespaceIngressInfos.map((item) => ({
-      ...item,
-      ingressUrls: item.ingressUrls.map((url) => new URL(url)),
-    }));
+    return namespaceIngressInfos;
   } catch (err) {
     console.error("Error fetching namespaces and ingress URLs:", err);
     return [];
@@ -161,7 +158,7 @@ export async function getK8sNamespaceInfo(
   if (cachedData) {
     return {
       ...cachedData,
-      ingressUrls: cachedData.ingressUrls.map((url) => new URL(url)),
+      ingressUrls: cachedData.ingressUrls.map((url) => url.toString()),
     };
   }
 
@@ -182,7 +179,7 @@ export async function getK8sNamespaceInfo(
 
     const namespace = namespaceResponse.body;
     const ingressUrls =
-      ingressesResponse.body.items.flatMap(extractIngressUrls);
+      ingressesResponse.body.items.flatMap(extractIngressUrls).map(url => url.toString());
     const services = servicesResponse.body.items;
     const deployments = deploymentsResponse.body.items; // Added deployments
     const resourceUsage = calculateResourceUsage(podsResponse.body.items);

@@ -1,7 +1,9 @@
 ---
 import { DetailCommandBox } from "@/components/custom/DetailCommandBox";
+import EnvironmentNav from "@/components/custom/EnvironmentNav";
 import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
+import type { SideBarUrl } from "@/lib/config";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
 import { GRAFANA_BASE_URL } from "astro:env/server";
 
@@ -17,6 +19,33 @@ const navItems = [
   { href: "/", label: "Namespaces" },
   { href: "/favs", label: "Favourites" },
 ];
+
+const sidebarUrls = [
+  {
+    name: "Grafana",
+    url: "https://grafana.example.com",
+    icon: "chart",
+    description: "Metrics and monitoring",
+  },
+  {
+    name: "API Docs",
+    url: "https://api.example.com",
+    icon: "text",
+    description: "API Documentation",
+  },
+  {
+    name: "Terminal",
+    url: "https://terminal.example.com",
+    icon: "terminal",
+    description: "Web Terminal Access",
+  },
+  {
+    name: "Status Page",
+    url: "https://status.example.com",
+    icon: "url",
+    description: "System Status",
+  },
+] as SideBarUrl[]
 ---
 
 <html lang="en">
@@ -29,7 +58,8 @@ const navItems = [
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
       <aside class="w-60 flex flex-col bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground shadow-xl">
-        <div class="p-5">
+        <!-- Main Navigation Area -->
+        <div class="flex-1 p-5">
           <h1 class="text-xl font-bold tracking-tight mb-6">Dashboard</h1>
           <nav class="space-y-1">
             {
@@ -48,15 +78,24 @@ const navItems = [
             }
           </nav>
         </div>
-        <div class="mt-auto p-5">
-          <ModeToggle client:load />
+
+        <!-- Bottom Area with Environment Links and Theme Toggle -->
+        <div class="border-t border-primary-foreground/10">
+          <div class="p-5">
+            <EnvironmentNav client:load urls={sidebarUrls} />
+          </div>
+          <div class="p-5 pt-0">
+            <ModeToggle client:load />
+          </div>
         </div>
       </aside>
 
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-h-0">
         <!-- Header -->
-        <header class="h-16 bg-gradient-to-r from-secondary/90 via-secondary to-secondary/90 text-secondary-foreground shadow-md">
+        <header
+          class="h-16 bg-gradient-to-r from-secondary/90 via-secondary to-secondary/90 text-secondary-foreground shadow-md"
+        >
           <div class="h-full mx-6 flex items-center justify-between">
             <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
             <div class="flex items-center space-x-6">
@@ -83,7 +122,9 @@ const navItems = [
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        <main
+          class="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+        >
           <div class="max-w-7xl mx-auto">
             <slot />
           </div>
@@ -94,17 +135,20 @@ const navItems = [
 
   <script is:inline>
     const getThemePreference = () => {
-      if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
+      if (
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("theme")
+      ) {
         return localStorage.getItem("theme");
       }
       return window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
     };
-    
+
     const isDark = getThemePreference() === "dark";
     document.documentElement.classList[isDark ? "add" : "remove"]("dark");
-    
+
     if (typeof localStorage !== "undefined") {
       const observer = new MutationObserver(() => {
         const isDark = document.documentElement.classList.contains("dark");
