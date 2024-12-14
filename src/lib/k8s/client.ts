@@ -51,6 +51,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
   const cacheKey = "namespaceIngressInfo";
   const cachedData = cache.get<NamespaceIngressInfo[]>(cacheKey);
   const specialNamespaces = getConfig().SPECIAL_NAMESPACES;
+
   if (cachedData) {
     return cachedData.map((item) => ({
       ...item,
@@ -59,9 +60,9 @@ export async function getK8sNamespacesWithIngress(): Promise<
   }
 
   try {
+    // Get namespaces with label selector
     let namespaces: V1Namespace[] = [];
     let continueToken: string | undefined;
-
     do {
       const namespaceResponse = await k8sApi.listNamespace(
         undefined,
@@ -79,10 +80,23 @@ export async function getK8sNamespacesWithIngress(): Promise<
       continueToken = namespaceResponse.body.metadata?._continue;
     } while (continueToken);
 
-    const specialNamespaceResponse =
+    // Get special namespaces
+    const specialNamespaceResponse = await Promise.all(
+      specialNamespaces.map(async (namespaceName) => {
+        try {
+          const response = await k8sApi.readNamespace(namespaceName);
+          return response.body;
+        } catch (error) {
+          console.warn(`Failed to fetch special namespace ${namespaceName}:`, error);
+          return null;
+        }
+      })
+    );
+
+    // Combine labeled and special namespaces, filtering out null values
+    namespaces = namespaces.concat(specialNamespaceResponse.filter((ns): ns is V1Namespace => ns !== null));
 
     const namespaceIngressInfos: NamespaceIngressInfo[] = [];
-
     for (let i = 0; i < namespaces.length; i += BATCH_SIZE) {
       const batch = namespaces.slice(i, i + BATCH_SIZE);
       const batchResults = await Promise.all(
@@ -91,20 +105,17 @@ export async function getK8sNamespacesWithIngress(): Promise<
           if (!namespaceName) {
             return { namespace, ingressUrls: [] };
           }
-
           const ingresses =
             await networkingV1Api.listNamespacedIngress(namespaceName);
           const ingressUrls = ingresses.body.items
             .flatMap(extractIngressUrls)
             .map((url) => url.toString());
-
           return {
             namespace,
             ingressUrls,
           };
         }),
       );
-
       namespaceIngressInfos.push(...batchResults);
     }
 

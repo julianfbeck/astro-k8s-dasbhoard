@@ -1,7 +1,14 @@
 ---
-import { getK8sNamespacesWithIngress } from "@/lib/k8s/client";
+import {
+  getK8sNamespacesWithIngress,
+  type NamespaceIngressInfo,
+} from "@/lib/k8s/client";
 import NamespaceItem from "./NamespaceItem.astro";
-const namespaceIngressInfos = await getK8sNamespacesWithIngress();
+
+interface Props {
+  namespaceIngressInfos: NamespaceIngressInfo[];
+}
+const { namespaceIngressInfos } = Astro.props;
 ---
 
 <div class="bg-background text-foreground rounded-xl border shadow-lg">

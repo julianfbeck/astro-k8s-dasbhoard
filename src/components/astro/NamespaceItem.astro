@@ -1,5 +1,6 @@
 ---
 import type { NamespaceIngressInfo } from "@/lib/k8s/client";
+import { getConfig } from "@/lib/config";
 
 interface Props {
     namespace: NamespaceIngressInfo;
@@ -9,6 +10,9 @@ interface Props {
 const { namespace, showHeartByDefault = false } = Astro.props;
 const { namespace: namespaceData, ingressUrls } = namespace;
 
+const specialNamespaces = getConfig().SPECIAL_NAMESPACES;
+const isSpecialNamespace = specialNamespaces.includes(namespaceData.metadata?.name || '');
+
 const labelsCount = Object.keys(namespaceData.metadata?.labels || {}).length;
 const annotationsCount = Object.entries(namespaceData.metadata?.annotations || {})
     .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
@@ -16,15 +20,22 @@ const annotationsCount = Object.entries(namespaceData.metadata?.annotations || {
 const totalCount = labelsCount + annotationsCount;
 ---
 
-<div class="p-6 space-y-3 hover:bg-muted/50 transition-colors" data-namespace={namespaceData.metadata?.name}>
+<div class={`p-6 space-y-3 transition-colors ${isSpecialNamespace ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-muted/50'}`} data-namespace={namespaceData.metadata?.name}>
     <div class="flex items-center justify-between group">
         <div class="space-y-1">
-            <a 
-                href={`/namespace/${namespaceData.metadata?.name}`} 
-                class="text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-                {namespaceData.metadata?.name}
-            </a>
+            <div class="flex items-center gap-2">
+                <a 
+                    href={`/namespace/${namespaceData.metadata?.name}`} 
+                    class="text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                    {namespaceData.metadata?.name}
+                </a>
+                {isSpecialNamespace && (
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-primary/20 text-primary">
+                        Special
+                    </span>
+                )}
+            </div>
             {totalCount > 0 && (
                 <button 
                     class="text-xs text-muted-foreground hover:text-primary transition-colors labels-toggle"
@@ -50,36 +61,35 @@ const totalCount = labelsCount + annotationsCount;
                 </button>
             )}
         </div>
-		<div class="flex items-center space-x-4">
-			<span class="text-xs text-muted-foreground">
-				Created {new Date(namespaceData.metadata?.creationTimestamp || '').toLocaleDateString()}
-			</span>
-			<button 
-				class={`heart-button p-1.5 rounded-full hover:bg-red-500/10 transition-colors ${
-					showHeartByDefault ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
-				}`}
-				data-namespace={namespaceData.metadata?.name}
-			>
-				<svg 
-					xmlns="http://www.w3.org/2000/svg" 
-					width="16" 
-					height="16" 
-					viewBox="0 0 24 24" 
-					fill={showHeartByDefault ? "currentColor" : "none"}
-					stroke="currentColor" 
-					stroke-width="2" 
-					stroke-linecap="round" 
-					stroke-linejoin="round" 
-					class="heart-icon"
-				>
-					<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-				</svg>
-			</button>
-		</div>
-		
+        <div class="flex items-center space-x-4">
+            <span class="text-xs text-muted-foreground">
+                Created {new Date(namespaceData.metadata?.creationTimestamp || '').toLocaleDateString()}
+            </span>
+            <button 
+                class={`heart-button p-1.5 rounded-full hover:bg-red-500/10 transition-colors ${
+                    showHeartByDefault ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
+                }`}
+                data-namespace={namespaceData.metadata?.name}
+            >
+                <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill={showHeartByDefault ? "currentColor" : "none"}
+                    stroke="currentColor" 
+                    stroke-width="2" 
+                    stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                    class="heart-icon"
+                >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </button>
+        </div>
     </div>
     
-    {/* Labels and Annotations Table */}
+    {/* Rest of the component remains the same */}
     {totalCount > 0 && (
         <div class="labels-container hidden">
             <div class="mt-2 rounded-lg border border-border overflow-hidden">
@@ -119,7 +129,6 @@ const totalCount = labelsCount + annotationsCount;
         </div>
     )}
 
-    {/* Ingress URLs */}
     {ingressUrls.length > 0 && (
         <div class="space-y-2">
             <h4 class="text-xs font-medium text-muted-foreground">Ingress URLs</h4>

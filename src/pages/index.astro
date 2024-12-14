@@ -4,7 +4,9 @@ import DefaultLayout from "@/layout/DefaultLayout.astro";
 import { getK8sNamespacesWithIngress } from "@/lib/k8s/client";
 import "@/styles/globals.css";
 import { WEBSITE_NAME } from "astro:env/server";
-const namespaceIngressInfos = await getK8sNamespacesWithIngress();
+const namespaceIngressInfos = await getK8sNamespacesWithIngress()
+
+
 ---
 
 <DefaultLayout
@@ -12,5 +14,5 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
   namespaceIngressInfos={namespaceIngressInfos}
   namespaceInfo={undefined}
 >
-  <Namespaces namespaceIngressInfos={namespaceIngressInfos} />
+  <Namespaces namespaceIngressInfos={namespaceIngressInfos.sort((a, b) => (a.isSpecial === b.isSpecial) ? 0 : a.isSpecial ? -1 : 1)} />
 </DefaultLayout>
