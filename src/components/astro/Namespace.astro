@@ -1,22 +1,17 @@
 ---
 import { getGrafanaDashboardUrl, getNamespaceDashboardUrl, getWorkloadLogsUrl } from "@/lib/grafana";
 import type { NamespaceInfo } from "@/lib/k8s/client";
+import { CalendarDays, Activity, Box, Cpu, MemoryStick } from "lucide-react";
 
 interface Props {
   namespaceInfo: NamespaceInfo;
   name: string;
 }
 const { namespaceInfo, name } = Astro.props;
-const { namespace, ingressUrls, services, deployments, resourceUsage } =
-  namespaceInfo;
-
-// Dashboard names
+const { namespace, ingressUrls, services, deployments, resourceUsage } = namespaceInfo;
 ---
 
-<div
-  class="bg-background text-foreground dark:bg-background dark:text-foreground rounded-lg border shadow-sm"
->
-  {/* Rest of the component remains the same... */}
+<div class="bg-background text-foreground dark:bg-background dark:text-foreground rounded-lg border shadow-sm">
   <div class="p-4 border-b border-border">
     <div class="flex justify-between items-center">
       <h2 class="text-lg font-semibold">Namespace: {name}</h2>
@@ -31,48 +26,59 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
     </div>
   </div>
   <div class="p-4 space-y-4">
-    {/* Namespace Details */}
-    <div class="space-y-2">
-      <h3
-        class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"
-      >
-        Namespace Details
-      </h3>
-      <div class="grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <span class="font-medium">Created:</span>
-          {
-            namespace.metadata?.creationTimestamp
-              ? new Date(namespace.metadata.creationTimestamp).toLocaleString()
-              : "N/A"
-          }
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Namespace Details Card -->
+      <div class="bg-card text-card-foreground dark:bg-card dark:text-card-foreground p-4 rounded-lg shadow-sm space-y-3">
+        <h3 class="text-sm font-medium flex items-center gap-2">
+          <Box className="h-4 w-4" />
+          Namespace Info
+        </h3>
+        <div class="space-y-2">
+          <div class="flex items-center space-x-2 text-sm">
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <span class="text-muted-foreground">Created:</span>
+            <span class="font-medium">
+              {namespace.metadata?.creationTimestamp
+                ? new Date(namespace.metadata.creationTimestamp).toLocaleString()
+                : "N/A"}
+            </span>
+          </div>
+          <div class="flex items-center space-x-2 text-sm">
+            <Activity className="h-4 w-4 text-muted-foreground" />
+            <span class="text-muted-foreground">Status:</span>
+            <span class={`font-medium ${
+              namespace.status?.phase === 'Active' ? 'text-green-500' : 'text-yellow-500'
+            }`}>
+              {namespace.status?.phase}
+            </span>
+          </div>
         </div>
-        <div>
-          <span class="font-medium">Status:</span>
-          {namespace.status?.phase}
+      </div>
+
+      <!-- Resource Usage Card -->
+      <div class="bg-card text-card-foreground dark:bg-card dark:text-card-foreground p-4 rounded-lg shadow-sm space-y-3">
+        <h3 class="text-sm font-medium flex items-center gap-2">
+          <MemoryStick className="h-4 w-4" />
+          Resource Usage
+        </h3>
+        <div class="space-y-2">
+          <div class="flex items-center space-x-2 text-sm">
+            <Cpu className="h-4 w-4 text-muted-foreground" />
+            <span class="text-muted-foreground">CPU:</span>
+            <span class="font-medium">{resourceUsage.cpu}</span>
+          </div>
+          <div class="flex items-center space-x-2 text-sm">
+            <MemoryStick className="h-4 w-4 text-muted-foreground" />
+            <span class="text-muted-foreground">Memory:</span>
+            <span class="font-medium">{resourceUsage.memory}</span>
+          </div>
         </div>
       </div>
     </div>
 
-    {/* Resource Usage Card */}
-    <div
-      class="bg-card text-card-foreground dark:bg-card dark:text-card-foreground p-4 rounded-lg shadow-sm"
-    >
-      <h3 class="text-sm font-medium mb-2">Resource Usage</h3>
-      <div class="grid grid-cols-2 gap-2 text-sm">
-        <div><span class="font-medium">CPU:</span> {resourceUsage.cpu}</div>
-        <div>
-          <span class="font-medium">Memory:</span>
-          {resourceUsage.memory}
-        </div>
-      </div>
-    </div>
-
-    {/* Ingress URLs */}
+    <!-- Rest of the content remains the same -->
     <div class="space-y-2">
-      <h3
-        class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"
-      >
+      <h3 class="text-sm font-medium text-muted-foreground dark:text-muted-foreground">
         Ingress URLs
       </h3>
       {
@@ -99,7 +105,6 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
       }
     </div>
 
-    {/* Deployments */}
     <div class="space-y-2">
       <h3
         class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"
@@ -154,7 +159,6 @@ const { namespace, ingressUrls, services, deployments, resourceUsage } =
       }
     </div>
 
-    {/* Services */}
     <div class="space-y-2">
       <h3
         class="text-sm font-medium text-muted-foreground dark:text-muted-foreground"

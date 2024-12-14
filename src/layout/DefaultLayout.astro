@@ -5,7 +5,7 @@ import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
 import { getConfig } from "@/lib/config";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, Compass } from "lucide-react";
 
 interface Props {
   title: string;
@@ -22,12 +22,23 @@ const navItems = [
 
 const currentPath = Astro.url.pathname;
 const isNavPath = currentPath === "/" || currentPath === "/favs";
+const config = getConfig();
 ---
 
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content=`Compass: ${title}` />
+    <meta name="theme-color" content="#000000" />
+    <meta name="author" content="Julian Beck" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content={`${title} - Compass`} />
+    <meta property="og:description" content=`Compass: ${title}` />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
     <title>{title}</title>
 
     <script is:inline>
@@ -64,7 +75,6 @@ const isNavPath = currentPath === "/" || currentPath === "/favs";
           dashboardTitle.addEventListener("click", () => {
             window.location.href = "/";
           });
-          dashboardTitle.style.cursor = "pointer";
         }
       });
     </script>
@@ -77,9 +87,13 @@ const isNavPath = currentPath === "/" || currentPath === "/favs";
       >
         <!-- Main Navigation Area -->
         <div class="flex-1 p-5">
-          <h1 id="dashboard-title" class="text-xl font-bold tracking-tight mb-6 hover:text-primary-foreground/90 transition-colors">
-            Dashboard
-          </h1>
+          <div
+            id="dashboard-title"
+            class="flex items-center space-x-2 mb-6 cursor-pointer hover:text-primary-foreground/90 transition-colors"
+          >
+            <Compass className="h-6 w-6" />
+            <h1 class="text-xl font-bold tracking-tight">Compass</h1>
+          </div>
           <nav class="space-y-1">
             {
               navItems.map((item) => (
@@ -101,7 +115,7 @@ const isNavPath = currentPath === "/" || currentPath === "/favs";
         <!-- Bottom Area with Environment Links and Theme Toggle -->
         <div class="border-t border-primary-foreground/10">
           <div class="p-5">
-            <EnvironmentNav client:load urls={getConfig().SIDEBAR_URLS} />
+            <EnvironmentNav client:load urls={config.SIDEBAR_URLS} />
           </div>
           <div class="p-5 pt-0">
             <ModeToggle client:load />
@@ -112,20 +126,23 @@ const isNavPath = currentPath === "/" || currentPath === "/favs";
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-h-0">
         <!-- Header -->
+
         <header
           class="h-16 bg-gradient-to-r from-secondary/90 via-secondary to-secondary/90 text-secondary-foreground shadow-md"
         >
           <div class="h-full mx-6 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-              {!isNavPath && (
-                <a 
-                  href="/"
-                  class="flex items-center space-x-2 hover:text-secondary-foreground/80 transition-colors"
-                >
-                  <ArrowLeft class="h-5 w-5" />
-                  <span>Back</span>
-                </a>
-              )}
+            <div class="flex items-center">
+              {
+                !isNavPath && (
+                  <a
+                    href="/"
+                    class="group flex items-center mr-4 text-secondary-foreground/70 hover:text-secondary-foreground transition-colors"
+                    aria-label="Back to dashboard"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </a>
+                )
+              }
               <h2 class="text-xl font-semibold tracking-tight">{title}</h2>
             </div>
             <div class="flex items-center space-x-6">
