@@ -30,79 +30,82 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-      const cookieName = 'heartedUnicorns';
-      const favCount = document.getElementById('fav-count');
-      const noFavorites = document.getElementById('no-favorites');
-      const namespaceContainer = document.getElementById('namespaces-container');
+  document.addEventListener("DOMContentLoaded", () => {
+    const cookieName = "heartedUnicorns";
+    const favCount = document.getElementById("fav-count");
+    const noFavorites = document.getElementById("no-favorites");
+    const namespaceContainer = document.getElementById("namespaces-container");
 
-      function getHeartedUnicorns() {
-          const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
-          return cookie ? JSON.parse(cookie.split('=')[1]) : [];
-      }
+    function getHeartedUnicorns() {
+      const cookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith(cookieName));
+      return cookie ? JSON.parse(cookie.split("=")[1]) : [];
+    }
 
-      function saveHeartedUnicorns(heartedList) {
-          const expirationDate = new Date();
-          expirationDate.setFullYear(expirationDate.getFullYear() + 1);
-          document.cookie = `${cookieName}=${JSON.stringify(heartedList)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Strict`;
-      }
+    function saveHeartedUnicorns(heartedList) {
+      const expirationDate = new Date();
+      expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+      document.cookie = `${cookieName}=${JSON.stringify(heartedList)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Strict`;
+    }
 
-      function updateDisplay() {
-          const heartedList = getHeartedUnicorns();
-          const namespaces = namespaceContainer.querySelectorAll('[data-namespace]');
-          let visibleCount = 0;
+    function updateDisplay() {
+      const heartedList = getHeartedUnicorns();
+      const namespaces =
+        namespaceContainer.querySelectorAll("[data-namespace]");
+      const visibleCount = heartedList.length;
 
-          namespaces.forEach(namespace => {
-              const namespaceName = (namespace as HTMLElement).dataset.namespace;
-              if (heartedList.includes(namespaceName)) {
-                  namespace.classList.remove('hidden');
-                  const heartIcon = namespace.querySelector('.heart-icon');
-                  if (heartIcon) {
-                      heartIcon.setAttribute('fill', 'currentColor');
-                  }
-                  visibleCount++;
-              } else {
-                  namespace.classList.add('hidden');
-              }
-          });
+      namespaces.forEach((namespace) => {
+        const namespaceName = (namespace as HTMLElement).dataset.namespace;
+        const isFavorited = heartedList.includes(namespaceName);
 
-          favCount.textContent = `${visibleCount} favorite${visibleCount === 1 ? '' : 's'}`;
-
-          if (visibleCount === 0) {
-              noFavorites.classList.remove('hidden');
-              namespaceContainer.classList.add('hidden');
-          } else {
-              noFavorites.classList.add('hidden');
-              namespaceContainer.classList.remove('hidden');
+        if (isFavorited) {
+          namespace.classList.remove("hidden");
+          const heartIcon = namespace.querySelector(".heart-icon");
+          if (heartIcon) {
+            heartIcon.setAttribute("fill", "currentColor");
           }
-      }
-
-      // Heart click handlers
-      const heartButtons = document.querySelectorAll('.heart-button');
-      heartButtons.forEach(button => {
-          button.addEventListener('click', () => {
-              const namespace = button.getAttribute('data-namespace');
-              const heartedList = getHeartedUnicorns();
-              const index = heartedList.indexOf(namespace);
-              
-              if (index > -1) {
-                  heartedList.splice(index, 1);
-                  const parentNamespace = button.closest('[data-namespace]');
-                  if (parentNamespace) {
-                      // Fade out animation
-                      (parentNamespace as HTMLElement).style.opacity = '0';
-                      setTimeout(() => {
-                          parentNamespace.classList.add('hidden');
-                          updateDisplay(); // Update count after hiding
-                      }, 200);
-                  }
-              }
-              
-              saveHeartedUnicorns(heartedList);
-          });
+        } else {
+          namespace.classList.add("hidden");
+        }
       });
 
-      // Initialize display
-      updateDisplay();
+      favCount.textContent = `${visibleCount} favorite${visibleCount === 1 ? "" : "s"}`;
+
+      if (visibleCount === 0) {
+        noFavorites.classList.remove("hidden");
+        namespaceContainer.classList.add("hidden");
+      } else {
+        noFavorites.classList.add("hidden");
+        namespaceContainer.classList.remove("hidden");
+      }
+    }
+    // Heart click handlers
+    const heartButtons = document.querySelectorAll(".heart-button");
+    heartButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const namespace = button.getAttribute("data-namespace");
+        const heartedList = getHeartedUnicorns();
+        const index = heartedList.indexOf(namespace);
+
+        if (index > -1) {
+          heartedList.splice(index, 1);
+          const parentNamespace = button.closest("[data-namespace]");
+          if (parentNamespace) {
+            // Fade out animation
+            (parentNamespace as HTMLElement).style.opacity = "0";
+            setTimeout(() => {
+              parentNamespace.classList.add("hidden");
+              updateDisplay(); // Update count after hiding
+            }, 200);
+          }
+        }
+
+        saveHeartedUnicorns(heartedList);
+      });
+    });
+
+    // Initialize display
+    updateDisplay();
   });
 </script>
