@@ -1,5 +1,5 @@
 import * as React from "react";
-import { FolderClosed, Link } from "lucide-react";
+import { FolderClosed, Link, Text } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -67,7 +67,7 @@ export function DetailCommandBox({
                   )
                 }
               >
-                <Link className="mr-2 h-4 w-4" />
+                <Text className="mr-2 h-4 w-4" />
                 <span className="flex-1 truncate">
                   {deployment.metadata?.name} Logs
                 </span>
