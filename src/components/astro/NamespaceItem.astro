@@ -1,0 +1,158 @@
+---
+import type { NamespaceIngressInfo } from "@/lib/k8s/client";
+
+interface Props {
+    namespace: NamespaceIngressInfo;
+    showHeartByDefault?: boolean;
+}
+
+const { namespace, showHeartByDefault = false } = Astro.props;
+const { namespace: namespaceData, ingressUrls } = namespace;
+
+const labelsCount = Object.keys(namespaceData.metadata?.labels || {}).length;
+const annotationsCount = Object.entries(namespaceData.metadata?.annotations || {})
+    .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
+    .length;
+const totalCount = labelsCount + annotationsCount;
+---
+
+<div class="p-6 space-y-3 hover:bg-muted/50 transition-colors" data-namespace={namespaceData.metadata?.name}>
+    <div class="flex items-center justify-between group">
+        <div class="space-y-1">
+            <a 
+                href={`/namespace/${namespaceData.metadata?.name}`} 
+                class="text-primary hover:text-primary/80 font-medium transition-colors"
+            >
+                {namespaceData.metadata?.name}
+            </a>
+            {totalCount > 0 && (
+                <button 
+                    class="text-xs text-muted-foreground hover:text-primary transition-colors labels-toggle"
+                    data-expanded="false"
+                >
+                    <span class="label-count">
+                        {totalCount} labels/annotations
+                    </span>
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="12" 
+                        height="12" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        stroke-width="2" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round" 
+                        class="inline-block ml-1 transform transition-transform duration-200"
+                    >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+            )}
+        </div>
+		<div class="flex items-center space-x-4">
+			<span class="text-xs text-muted-foreground">
+				Created {new Date(namespaceData.metadata?.creationTimestamp || '').toLocaleDateString()}
+			</span>
+			<button 
+				class={`heart-button p-1.5 rounded-full hover:bg-red-500/10 transition-colors ${
+					showHeartByDefault ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
+				}`}
+				data-namespace={namespaceData.metadata?.name}
+			>
+				<svg 
+					xmlns="http://www.w3.org/2000/svg" 
+					width="16" 
+					height="16" 
+					viewBox="0 0 24 24" 
+					fill={showHeartByDefault ? "currentColor" : "none"}
+					stroke="currentColor" 
+					stroke-width="2" 
+					stroke-linecap="round" 
+					stroke-linejoin="round" 
+					class="heart-icon"
+				>
+					<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+				</svg>
+			</button>
+		</div>
+		
+    </div>
+    
+    {/* Labels and Annotations Table */}
+    {totalCount > 0 && (
+        <div class="labels-container hidden">
+            <div class="mt-2 rounded-lg border border-border overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-muted/50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Type</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Key</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        {[
+                            ...(Object.entries(namespaceData.metadata?.labels || {})
+                                .map(([key, value]) => ({ key, value, type: 'Label' }))),
+                            ...(Object.entries(namespaceData.metadata?.annotations || {})
+                                .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
+                                .map(([key, value]) => ({ key, value, type: 'Annotation' })))
+                        ].map(({ key, value, type }) => (
+                            <tr class="hover:bg-muted/50">
+                                <td class="px-4 py-2 text-xs">
+                                    <span class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                        type === 'Label' 
+                                            ? 'bg-secondary/30 text-secondary-foreground' 
+                                            : 'bg-accent/30 text-accent-foreground'
+                                    }`}>
+                                        {type}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-2 text-xs font-mono">{key}</td>
+                                <td class="px-4 py-2 text-xs font-mono">{value}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    )}
+
+    {/* Ingress URLs */}
+    {ingressUrls.length > 0 && (
+        <div class="space-y-2">
+            <h4 class="text-xs font-medium text-muted-foreground">Ingress URLs</h4>
+            <ul class="space-y-1.5">
+                {ingressUrls.map((url) => (
+                    <li class="text-xs">
+                        <a 
+                            href={url}
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class="text-primary hover:text-primary/80 hover:underline transition-colors inline-flex items-center"
+                        >
+                            {url}
+                            <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="12" 
+                                height="12" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                stroke-width="2" 
+                                stroke-linecap="round" 
+                                stroke-linejoin="round" 
+                                class="ml-1"
+                            >
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )}
+</div>

@@ -1,0 +1,108 @@
+---
+import NamespaceItem from "@/components/astro/NamespaceItem.astro";
+import { getK8sNamespacesWithIngress } from "@/lib/k8s/client";
+const namespaceIngressInfos = await getK8sNamespacesWithIngress();
+---
+
+<div class="bg-background text-foreground rounded-xl border shadow-lg">
+  <div class="px-6 py-4 border-b flex items-center justify-between">
+    <h2 class="text-lg font-semibold tracking-tight">Favorite Namespaces</h2>
+    <span class="text-sm text-muted-foreground" id="fav-count">0 favorites</span
+    >
+  </div>
+
+  <div
+    id="no-favorites"
+    class="p-6 flex items-center justify-center text-muted-foreground hidden"
+  >
+    <p>
+      No favorite namespaces yet. Heart a namespace to add it to your favorites.
+    </p>
+  </div>
+
+  <div class="divide-y divide-border/50" id="namespaces-container">
+    {
+      namespaceIngressInfos.map((namespaceInfo) => (
+        <NamespaceItem namespace={namespaceInfo} showHeartByDefault={true} />
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+      const cookieName = 'heartedUnicorns';
+      const favCount = document.getElementById('fav-count');
+      const noFavorites = document.getElementById('no-favorites');
+      const namespaceContainer = document.getElementById('namespaces-container');
+
+      function getHeartedUnicorns() {
+          const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
+          return cookie ? JSON.parse(cookie.split('=')[1]) : [];
+      }
+
+      function saveHeartedUnicorns(heartedList) {
+          const expirationDate = new Date();
+          expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+          document.cookie = `${cookieName}=${JSON.stringify(heartedList)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Strict`;
+      }
+
+      function updateDisplay() {
+          const heartedList = getHeartedUnicorns();
+          const namespaces = namespaceContainer.querySelectorAll('[data-namespace]');
+          let visibleCount = 0;
+
+          namespaces.forEach(namespace => {
+              const namespaceName = namespace.dataset.namespace;
+              if (heartedList.includes(namespaceName)) {
+                  namespace.classList.remove('hidden');
+                  const heartIcon = namespace.querySelector('.heart-icon');
+                  if (heartIcon) {
+                      heartIcon.setAttribute('fill', 'currentColor');
+                  }
+                  visibleCount++;
+              } else {
+                  namespace.classList.add('hidden');
+              }
+          });
+
+          favCount.textContent = `${visibleCount} favorite${visibleCount === 1 ? '' : 's'}`;
+
+          if (visibleCount === 0) {
+              noFavorites.classList.remove('hidden');
+              namespaceContainer.classList.add('hidden');
+          } else {
+              noFavorites.classList.add('hidden');
+              namespaceContainer.classList.remove('hidden');
+          }
+      }
+
+      // Heart click handlers
+      const heartButtons = document.querySelectorAll('.heart-button');
+      heartButtons.forEach(button => {
+          button.addEventListener('click', () => {
+              const namespace = button.getAttribute('data-namespace');
+              const heartedList = getHeartedUnicorns();
+              const index = heartedList.indexOf(namespace);
+              
+              if (index > -1) {
+                  heartedList.splice(index, 1);
+                  const parentNamespace = button.closest('[data-namespace]');
+                  if (parentNamespace) {
+                      // Fade out animation
+                      parentNamespace.style.opacity = '0';
+                      setTimeout(() => {
+                          parentNamespace.classList.add('hidden');
+                          updateDisplay(); // Update count after hiding
+                      }, 200);
+                  }
+              }
+              
+              saveHeartedUnicorns(heartedList);
+          });
+      });
+
+      // Initialize display
+      updateDisplay();
+  });
+</script>

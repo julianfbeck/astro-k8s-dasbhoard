@@ -1,258 +1,122 @@
 ---
 import { getK8sNamespacesWithIngress } from "@/lib/k8s/client";
-
+import NamespaceItem from "./NamespaceItem.astro";
 const namespaceIngressInfos = await getK8sNamespacesWithIngress();
 ---
 
 <div class="bg-background text-foreground rounded-xl border shadow-lg">
-    <div class="px-6 py-4 border-b flex items-center justify-between">
-        <h2 class="text-lg font-semibold tracking-tight">Kubernetes Namespaces</h2>
-        <span class="text-sm text-muted-foreground">{namespaceIngressInfos.length} namespaces</span>
-    </div>
-    {namespaceIngressInfos.length === 0 ? (
-        <div class="p-6 flex items-center justify-center text-muted-foreground">
-            <p>No namespaces or ingress URLs found.</p>
-        </div>
+  <div class="px-6 py-4 border-b flex items-center justify-between">
+    <h2 class="text-lg font-semibold tracking-tight">Kubernetes Namespaces</h2>
+    <span class="text-sm text-muted-foreground"
+      >{namespaceIngressInfos.length} namespaces</span
+    >
+  </div>
+  {
+    namespaceIngressInfos.length === 0 ? (
+      <div class="p-6 flex items-center justify-center text-muted-foreground">
+        <p>No namespaces or ingress URLs found.</p>
+      </div>
     ) : (
-        <div class="divide-y divide-border/50" id="namespaces-container">
-            {namespaceIngressInfos.map(({ namespace, ingressUrls }) => (
-                <div class="p-6 space-y-3 hover:bg-muted/50 transition-colors" data-namespace={namespace.metadata?.name}>
-                    <div class="flex items-center justify-between group">
-                        <div class="space-y-1">
-                            <a 
-                                href={`/namespace/${namespace.metadata?.name}`} 
-                                class="text-primary hover:text-primary/80 font-medium transition-colors"
-                            >
-                                {namespace.metadata?.name}
-                            </a>
-                            {/* Labels Count */}
-                            {((namespace.metadata?.labels && Object.keys(namespace.metadata.labels).length > 0) ||
-                            (namespace.metadata?.annotations && Object.keys(namespace.metadata.annotations).length > 0)) && (
-                                <button 
-                                    class="text-xs text-muted-foreground hover:text-primary transition-colors labels-toggle"
-                                    data-expanded="false"
-                                >
-                                    <span class="label-count">
-                                        {Object.keys(namespace.metadata?.labels || {}).length +
-                                        Object.keys(namespace.metadata?.annotations || {})
-                                            .filter(key => key !== 'kubectl.kubernetes.io/last-applied-configuration').length} labels/annotations
-                                    </span>
-                                    <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        width="12" 
-                                        height="12" 
-                                        viewBox="0 0 24 24" 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        stroke-width="2" 
-                                        stroke-linecap="round" 
-                                        stroke-linejoin="round" 
-                                        class="inline-block ml-1 transform transition-transform duration-200"
-                                    >
-                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                    </svg>
-                                </button>
-                            )}
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <span class="text-xs text-muted-foreground">
-                                Created {new Date(namespace.metadata?.creationTimestamp || '').toLocaleDateString()}
-                            </span>
-                            <button 
-                                class="heart-button text-muted-foreground hover:text-red-500 transition-colors p-1.5 rounded-full hover:bg-red-500/10" 
-                                data-namespace={namespace.metadata?.name}
-                            >
-                                <svg 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    width="16" 
-                                    height="16" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    stroke-width="2" 
-                                    stroke-linecap="round" 
-                                    stroke-linejoin="round" 
-                                    class="heart-icon"
-                                >
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    {/* Labels and Annotations - Table format */}
-                    {((namespace.metadata?.labels && Object.keys(namespace.metadata.labels).length > 0) ||
-                    (namespace.metadata?.annotations && Object.keys(namespace.metadata.annotations).length > 0)) && (
-                        <div class="labels-container hidden">
-                            <div class="mt-2 rounded-lg border border-border overflow-hidden">
-                                <table class="w-full text-sm">
-                                    <thead class="bg-muted/50">
-                                        <tr>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Type</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Key</th>
-                                            <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Value</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-border">
-                                        {[
-                                            ...(Object.entries(namespace.metadata?.labels || {})
-                                                .map(([key, value]) => ({ key, value, type: 'Label' }))),
-                                            ...(Object.entries(namespace.metadata?.annotations || {})
-                                                .filter(([key]) => key !== 'kubectl.kubernetes.io/last-applied-configuration')
-                                                .map(([key, value]) => ({ key, value, type: 'Annotation' })))
-                                        ].map(({ key, value, type }) => (
-                                            <tr class="hover:bg-muted/50">
-                                                <td class="px-4 py-2 text-xs">
-                                                    <span class={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                                                        type === 'Label' 
-                                                            ? 'bg-secondary/30 text-secondary-foreground' 
-                                                            : 'bg-accent/30 text-accent-foreground'
-                                                    }`}>
-                                                        {type}
-                                                    </span>
-                                                </td>
-                                                <td class="px-4 py-2 text-xs font-mono">{key}</td>
-                                                <td class="px-4 py-2 text-xs font-mono">{value}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Ingress URLs */}
-                    {ingressUrls.length > 0 && (
-                        <div class="space-y-2">
-                            <h4 class="text-xs font-medium text-muted-foreground">Ingress URLs</h4>
-                            <ul class="space-y-1.5">
-                                {ingressUrls.map((url) => (
-                                    <li class="text-xs">
-                                        <a 
-                                            href={url.toString()} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer" 
-                                            class="text-primary hover:text-primary/80 hover:underline transition-colors inline-flex items-center"
-                                        >
-                                            {url.toString()}
-                                            <svg 
-                                                xmlns="http://www.w3.org/2000/svg" 
-                                                width="12" 
-                                                height="12" 
-                                                viewBox="0 0 24 24" 
-                                                fill="none" 
-                                                stroke="currentColor" 
-                                                stroke-width="2" 
-                                                stroke-linecap="round" 
-                                                stroke-linejoin="round" 
-                                                class="ml-1"
-                                            >
-                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                                <polyline points="15 3 21 3 21 9"></polyline>
-                                                <line x1="10" y1="14" x2="21" y2="3"></line>
-                                            </svg>
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-            ))}
-        </div>
-    )}
+      <div class="divide-y divide-border/50" id="namespaces-container">
+        {namespaceIngressInfos.map((namespaceInfo) => (
+          <NamespaceItem namespace={namespaceInfo} showHeartByDefault={false} />
+        ))}
+      </div>
+    )
+  }
 </div>
-
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const cookieName = 'heartedUnicorns';
+  document.addEventListener("DOMContentLoaded", () => {
+    const cookieName = "heartedUnicorns";
 
-        function getHeartedUnicorns() {
-            const cookie = document.cookie.split('; ').find(row => row.startsWith(cookieName));
-            return cookie ? JSON.parse(cookie.split('=')[1]) : [];
+    function getHeartedUnicorns() {
+      const cookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith(cookieName));
+      return cookie ? JSON.parse(cookie.split("=")[1]) : [];
+    }
+
+    function saveHeartedUnicorns(heartedList) {
+      const expirationDate = new Date();
+      expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+      document.cookie = `${cookieName}=${JSON.stringify(heartedList)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Strict`;
+    }
+
+    function sortNamespaces() {
+      const container = document.getElementById("namespaces-container");
+      const namespaces = Array.from(container.children);
+      const heartedUnicorns = getHeartedUnicorns();
+
+      namespaces.sort((a, b) => {
+        const aHearted = heartedUnicorns.includes(a.dataset.namespace);
+        const bHearted = heartedUnicorns.includes(b.dataset.namespace);
+        if (aHearted === bHearted) {
+          return a.dataset.namespace.localeCompare(b.dataset.namespace);
         }
+        return aHearted ? -1 : 1;
+      });
 
-        function saveHeartedUnicorns(heartedList) {
-            const expirationDate = new Date();
-            expirationDate.setFullYear(expirationDate.getFullYear() + 1);
-            document.cookie = `${cookieName}=${JSON.stringify(heartedList)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Strict`;
-        }
+      namespaces.forEach((namespace) => container.appendChild(namespace));
+    }
 
-        function sortNamespaces() {
-            const container = document.getElementById('namespaces-container');
-            const namespaces = Array.from(container.children);
-            const heartedUnicorns = getHeartedUnicorns();
-            
-            namespaces.sort((a, b) => {
-                const aHearted = heartedUnicorns.includes(a.dataset.namespace);
-                const bHearted = heartedUnicorns.includes(b.dataset.namespace);
-                if (aHearted === bHearted) {
-                    return a.dataset.namespace.localeCompare(b.dataset.namespace);
-                }
-                return aHearted ? -1 : 1;
-            });
+    // Initialize hearts
+    const heartedUnicorns = getHeartedUnicorns();
+    const heartButtons = document.querySelectorAll(".heart-button");
 
-            namespaces.forEach(namespace => container.appendChild(namespace));
-        }
-
-        // Initialize hearts
-        const heartedUnicorns = getHeartedUnicorns();
-        const heartButtons = document.querySelectorAll('.heart-button');
-        
-        heartButtons.forEach(button => {
-            const namespace = button.getAttribute('data-namespace');
-            const icon = button.querySelector('.heart-icon');
-            if (heartedUnicorns.includes(namespace)) {
-                icon.setAttribute('fill', 'currentColor');
-            }
-        });
-
-        // Heart click handlers
-        heartButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const namespace = button.getAttribute('data-namespace');
-                const icon = button.querySelector('.heart-icon');
-                const heartedList = getHeartedUnicorns();
-                
-                if (icon.getAttribute('fill') === 'none') {
-                    icon.setAttribute('fill', 'currentColor');
-                    heartedList.push(namespace);
-                } else {
-                    icon.setAttribute('fill', 'none');
-                    const index = heartedList.indexOf(namespace);
-                    if (index > -1) {
-                        heartedList.splice(index, 1);
-                    }
-                }
-                
-                saveHeartedUnicorns(heartedList);
-                sortNamespaces();
-            });
-        });
-
-        // Labels toggle functionality
-        const labelToggles = document.querySelectorAll('.labels-toggle');
-        
-        labelToggles.forEach(toggle => {
-            toggle.addEventListener('click', () => {
-                const namespaceDiv = toggle.closest('[data-namespace]');
-                const container = namespaceDiv.querySelector('.labels-container');
-                const arrow = toggle.querySelector('svg');
-                const isExpanded = toggle.getAttribute('data-expanded') === 'true';
-                
-                if (isExpanded) {
-                    container.classList.add('hidden');
-                    arrow.style.transform = 'rotate(0deg)';
-                    toggle.setAttribute('data-expanded', 'false');
-                } else {
-                    container.classList.remove('hidden');
-                    arrow.style.transform = 'rotate(180deg)';
-                    toggle.setAttribute('data-expanded', 'true');
-                }
-            });
-        });
-
-        // Initial sort
-        sortNamespaces();
+    heartButtons.forEach((button) => {
+      const namespace = button.getAttribute("data-namespace");
+      const icon = button.querySelector(".heart-icon");
+      if (heartedUnicorns.includes(namespace)) {
+        icon.setAttribute("fill", "currentColor");
+      }
     });
+
+    // Heart click handlers
+    heartButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const namespace = button.getAttribute("data-namespace");
+        const icon = button.querySelector(".heart-icon");
+        const heartedList = getHeartedUnicorns();
+
+        if (icon.getAttribute("fill") === "none") {
+          icon.setAttribute("fill", "currentColor");
+          heartedList.push(namespace);
+        } else {
+          icon.setAttribute("fill", "none");
+          const index = heartedList.indexOf(namespace);
+          if (index > -1) {
+            heartedList.splice(index, 1);
+          }
+        }
+
+        saveHeartedUnicorns(heartedList);
+        sortNamespaces();
+      });
+    });
+
+    // Labels toggle functionality
+    const labelToggles = document.querySelectorAll(".labels-toggle");
+
+    labelToggles.forEach((toggle) => {
+      toggle.addEventListener("click", () => {
+        const namespaceDiv = toggle.closest("[data-namespace]");
+        const container = namespaceDiv.querySelector(".labels-container");
+        const arrow = toggle.querySelector("svg");
+        const isExpanded = toggle.getAttribute("data-expanded") === "true";
+
+        if (isExpanded) {
+          container.classList.add("hidden");
+          arrow.style.transform = "rotate(0deg)";
+          toggle.setAttribute("data-expanded", "false");
+        } else {
+          container.classList.remove("hidden");
+          arrow.style.transform = "rotate(180deg)";
+          toggle.setAttribute("data-expanded", "true");
+        }
+      });
+    });
+
+    // Initial sort
+    sortNamespaces();
+  });
 </script>

@@ -1,10 +1,17 @@
 ---
+import Favourites from "@/components/astro/Favourites.astro";
 import Namespaces from "@/components/astro/Namespaces.astro";
 import DefaultLayout from "@/layout/DefaultLayout.astro";
 import { getK8sNamespacesWithIngress } from "@/lib/k8s/client";
 import "@/styles/globals.css";
 import { WEBSITE_NAME } from "astro:env/server";
-console.log(Astro.request.headers);
+const namespaceIngressInfos = await getK8sNamespacesWithIngress();
 ---
 
-<DefaultLayout title={WEBSITE_NAME} />
+<DefaultLayout
+  title="Favourite Environments"
+  namespaceIngressInfos={namespaceIngressInfos}
+  namespaceInfo={undefined}
+>
+  <Favourites namespaceIngressInfos={namespaceIngressInfos} />
+</DefaultLayout>
