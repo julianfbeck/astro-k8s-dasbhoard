@@ -24,3 +24,4 @@ SPECIAL_NAMESPACES:
   - "production"
   - "staging"
   - "development"
+  - "dev"

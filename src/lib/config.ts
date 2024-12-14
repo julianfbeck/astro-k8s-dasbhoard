@@ -32,7 +32,7 @@ export function getConfig(): AppConfig {
   }
 
   try {
-    const configPath = path.join(process.cwd(), "config.yaml");
+    const configPath = path.join(process.cwd(), "config.yml");
     const configFile = fs.readFileSync(configPath, "utf-8");
     const parsedConfig = yaml.load(configFile);
     config = AppConfigSchema.parse(parsedConfig);

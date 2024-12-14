@@ -12,6 +12,7 @@ import {
 } from "@kubernetes/client-node";
 import { LABEL_SELECTOR } from "astro:env/server";
 import NodeCache from "node-cache";
+import { getConfig } from "../config";
 
 const kc = new KubeConfig();
 kc.loadFromDefault();
@@ -26,6 +27,7 @@ const cache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
 export type NamespaceIngressInfo = {
   namespace: V1Namespace;
   ingressUrls: string[];
+  isSpecial: boolean;
 };
 
 export type NamespaceInfo = {
@@ -48,6 +50,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
 > {
   const cacheKey = "namespaceIngressInfo";
   const cachedData = cache.get<NamespaceIngressInfo[]>(cacheKey);
+  const specialNamespaces = getConfig().SPECIAL_NAMESPACES;
   if (cachedData) {
     return cachedData.map((item) => ({
       ...item,
@@ -75,6 +78,8 @@ export async function getK8sNamespacesWithIngress(): Promise<
       namespaces = namespaces.concat(namespaceResponse.body.items);
       continueToken = namespaceResponse.body.metadata?._continue;
     } while (continueToken);
+
+    const specialNamespaceResponse =
 
     const namespaceIngressInfos: NamespaceIngressInfo[] = [];
 
