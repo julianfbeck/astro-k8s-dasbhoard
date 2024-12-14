@@ -56,10 +56,10 @@ const { namespaceIngressInfos } = Astro.props;
       const heartedUnicorns = getHeartedUnicorns();
 
       namespaces.sort((a, b) => {
-        const aHearted = heartedUnicorns.includes(a.dataset.namespace);
-        const bHearted = heartedUnicorns.includes(b.dataset.namespace);
+        const aHearted = heartedUnicorns.includes((a as HTMLElement).dataset.namespace);
+        const bHearted = heartedUnicorns.includes((b as HTMLElement).dataset.namespace);
         if (aHearted === bHearted) {
-          return a.dataset.namespace.localeCompare(b.dataset.namespace);
+          return (a as HTMLElement).dataset.namespace.localeCompare((b as HTMLElement).dataset.namespace);
         }
         return aHearted ? -1 : 1;
       });

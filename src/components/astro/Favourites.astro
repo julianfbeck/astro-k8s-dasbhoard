@@ -53,7 +53,7 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
           let visibleCount = 0;
 
           namespaces.forEach(namespace => {
-              const namespaceName = namespace.dataset.namespace;
+              const namespaceName = (namespace as HTMLElement).dataset.namespace;
               if (heartedList.includes(namespaceName)) {
                   namespace.classList.remove('hidden');
                   const heartIcon = namespace.querySelector('.heart-icon');
@@ -90,7 +90,7 @@ const namespaceIngressInfos = await getK8sNamespacesWithIngress();
                   const parentNamespace = button.closest('[data-namespace]');
                   if (parentNamespace) {
                       // Fade out animation
-                      parentNamespace.style.opacity = '0';
+                      (parentNamespace as HTMLElement).style.opacity = '0';
                       setTimeout(() => {
                           parentNamespace.classList.add('hidden');
                           updateDisplay(); // Update count after hiding

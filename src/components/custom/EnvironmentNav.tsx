@@ -1,4 +1,3 @@
-import React from 'react';
 import { BarChart, Link2, Terminal, FileText } from "lucide-react";
 import { type SideBarUrl } from "@/lib/config";
 
