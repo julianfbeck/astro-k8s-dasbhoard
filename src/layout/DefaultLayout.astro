@@ -3,9 +3,8 @@ import { DetailCommandBox } from "@/components/custom/DetailCommandBox";
 import EnvironmentNav from "@/components/custom/EnvironmentNav";
 import { ListCommandBox } from "@/components/custom/ListCommandBox";
 import { ModeToggle } from "@/components/custom/ModeToggle";
-import type { SideBarUrl } from "@/lib/config";
+import { getConfig, type SideBarUrl } from "@/lib/config";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
-import { GRAFANA_BASE_URL } from "astro:env/server";
 
 interface Props {
   title: string;
@@ -134,6 +133,7 @@ const sidebarUrls = [
                   <ListCommandBox
                     client:load
                     namespaceData={namespaceIngressInfos}
+                    appConfig={getConfig()}
                   />
                 )
               }
@@ -143,7 +143,7 @@ const sidebarUrls = [
                     client:load
                     namespaces={namespaceIngressInfos}
                     namespace={namespaceInfo}
-                    grafana_base_url={GRAFANA_BASE_URL}
+                    appConfig={getConfig()}
                   />
                 )
               }

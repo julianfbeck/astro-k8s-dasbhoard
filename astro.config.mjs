@@ -16,30 +16,4 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
-  env: {
-    schema: {
-      WEBSITE_NAME: envField.string({
-        context: "server",
-        access: "secret",
-        default: "My Website",
-      }),
-      LABEL_SELECTOR: envField.string({
-        context: "server",
-        access: "secret",
-      }),
-      GRAFANA_BASE_URL: envField.string({
-        context: "server",
-        access: "secret",
-        default: "https://grafana.com",
-      }),
-      GRAFANA_DASHBOARD_URL_NAMESPACE: envField.string({
-        context: "server",
-        access: "secret",
-      }),
-      GRAFANA_DASHBOARD_URL_DEPLOYMENT: envField.string({
-        context: "server",
-        access: "secret",
-      }),
-    },
-  },
 });

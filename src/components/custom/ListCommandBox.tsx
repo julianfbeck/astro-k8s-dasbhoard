@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FolderClosed, Link } from "lucide-react";
+import { BarChart, FileText, FolderClosed, Link, Link2, Terminal } from "lucide-react";
 
 import {
   CommandDialog,
@@ -13,12 +13,20 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import type { NamespaceIngressInfo } from "@/lib/k8s/client";
+import type { AppConfig } from "@/lib/config";
 
 interface CommandBoxProps {
   namespaceData: NamespaceIngressInfo[];
+  appConfig: AppConfig;
 }
+const iconMap = {
+  chart: BarChart,
+  url: Link2,
+  terminal: Terminal,
+  text: FileText,
+} as const;
 
-export function ListCommandBox({ namespaceData }: CommandBoxProps) {
+export function ListCommandBox({ namespaceData, appConfig }: CommandBoxProps) {
   const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -46,6 +54,23 @@ export function ListCommandBox({ namespaceData }: CommandBoxProps) {
         <CommandInput placeholder="Type a command or search..." />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="External Links">
+            {appConfig.SIDEBAR_URLS.map((item) => {
+              const Icon = iconMap[item.icon];
+              return (
+                <CommandItem
+                  key={item.name}
+                  onSelect={() => window.open(item.url, "_blank")}
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  <span className="flex-1 truncate">{item.name}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {item.description}
+                  </span>
+                </CommandItem>
+              );
+            })}
+          </CommandGroup>
           <CommandGroup heading="Namespaces">
             {namespaceData.map((nsInfo) => (
               <CommandItem

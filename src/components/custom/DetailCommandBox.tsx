@@ -1,5 +1,13 @@
 import * as React from "react";
-import { FolderClosed, Link, Text } from "lucide-react";
+import {
+  BarChart,
+  FileText,
+  FolderClosed,
+  Link,
+  Link2,
+  Terminal,
+  Text,
+} from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -11,17 +19,25 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import type { NamespaceInfo, NamespaceIngressInfo } from "@/lib/k8s/client";
+import type { AppConfig } from "@/lib/config";
 
 interface DetailCommandBox {
   namespaces: NamespaceIngressInfo[];
   namespace: NamespaceInfo;
-  grafana_base_url: string;
+  appConfig: AppConfig;
 }
+
+const iconMap = {
+  chart: BarChart,
+  url: Link2,
+  terminal: Terminal,
+  text: FileText,
+} as const;
 
 export function DetailCommandBox({
   namespace,
   namespaces,
-  grafana_base_url,
+  appConfig,
 }: DetailCommandBox) {
   const [open, setOpen] = React.useState(false);
 
@@ -38,7 +54,7 @@ export function DetailCommandBox({
   }, []);
 
   const getWorkloadLogsUrl = (namespace: string, deploymentName: string) =>
-    `${grafana_base_url}/explore?schemaVersion=1&panes=%7B%22GCQ%22%3A%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bapp%3D%5C%22${deploymentName}%5C%22%2Cnamespace%3D%5C%22${namespace}%5C%22%7D%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22loki%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D%7D&orgId=1`;
+    `${appConfig.GRAFANA_BASE_URL}/explore?schemaVersion=1&panes=%7B%22GCQ%22%3A%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bapp%3D%5C%22${deploymentName}%5C%22%2Cnamespace%3D%5C%22${namespace}%5C%22%7D%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22loki%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D%7D&orgId=1`;
 
   return (
     <>
@@ -69,8 +85,9 @@ export function DetailCommandBox({
               >
                 <Text className="mr-2 h-4 w-4" />
                 <span className="flex-1 truncate">
-                  {deployment.metadata?.name} Logs
+                  {deployment.metadata?.name}
                 </span>
+                <span className="ml-2 text-xs text-muted-foreground">Logs</span>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -83,6 +100,9 @@ export function DetailCommandBox({
               >
                 <Link className="mr-2 h-4 w-4" />
                 <span className="flex-1 truncate">{url.toString()}</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  Ingress
+                </span>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -97,6 +117,24 @@ export function DetailCommandBox({
                 <span>{nsInfo.namespace.metadata?.name ?? "Error"}</span>
               </CommandItem>
             ))}
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading="External Links">
+            {appConfig.SIDEBAR_URLS.map((item) => {
+              const Icon = iconMap[item.icon];
+              return (
+                <CommandItem
+                  key={item.name}
+                  onSelect={() => window.open(item.url, "_blank")}
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  <span className="flex-1 truncate">{item.name}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {item.description}
+                  </span>
+                </CommandItem>
+              );
+            })}
           </CommandGroup>
         </CommandList>
       </CommandDialog>

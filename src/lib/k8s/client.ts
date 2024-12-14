@@ -10,7 +10,6 @@ import {
   AppsV1Api,
   V1Deployment,
 } from "@kubernetes/client-node";
-import { LABEL_SELECTOR } from "astro:env/server";
 import NodeCache from "node-cache";
 import { getConfig } from "../config";
 
@@ -22,7 +21,7 @@ export const networkingV1Api = kc.makeApiClient(NetworkingV1Api);
 export const appsV1Api = kc.makeApiClient(AppsV1Api);
 
 // Cache setup
-const cache = new NodeCache({ stdTTL: 300 }); // Cache for 5 minutes
+const cache = new NodeCache({ stdTTL: getConfig().CACHE_TTL}); // Cache for 5 minutes
 
 export type NamespaceIngressInfo = {
   namespace: V1Namespace;
@@ -69,7 +68,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
         undefined,
         continueToken,
         undefined,
-        LABEL_SELECTOR,
+        getConfig().LABEL_SELECTOR,
         1000,
         undefined,
         undefined,
@@ -103,7 +102,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
         batch.map(async (namespace) => {
           const namespaceName = namespace.metadata?.name;
           if (!namespaceName) {
-            return { namespace, ingressUrls: [] };
+            return { namespace, ingressUrls: [], isSpecial: false };
           }
           const ingresses =
             await networkingV1Api.listNamespacedIngress(namespaceName);
@@ -113,6 +112,7 @@ export async function getK8sNamespacesWithIngress(): Promise<
           return {
             namespace,
             ingressUrls,
+            isSpecial: false
           };
         }),
       );

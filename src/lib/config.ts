@@ -17,6 +17,7 @@ const AppConfigSchema = z.object({
   GRAFANA_DASHBOARD_URL_DEPLOYMENT: z.string(),
   GRAFANA_DASHBOARD_URL_NAMESPACE: z.string(),
   LABEL_SELECTOR: z.string(),
+  CACHE_TTL: z.number(),
   SIDEBAR_URLS: z.array(SideBarUrlSchema),
   SPECIAL_NAMESPACES: z.array(z.string()),
 });
